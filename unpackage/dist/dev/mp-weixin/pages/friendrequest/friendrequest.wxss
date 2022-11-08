@@ -30,17 +30,24 @@
 }
 .content {
   padding-top: 25px;
-  position: relative;
 }
 .top-bar {
   position: fixed;
-  z-index: 100;
+  z-index: 1000;
   top: 25px;
   left: 0;
   width: 100%;
   height: 88rpx;
-  background: rgba(255, 255, 255, 0);
+  background: white;
   border-bottom: 1px solid rgba(39, 40, 50, 0.1);
+}
+.top-bar .top-bar-center {
+  position: absolute;
+  right: 50%;
+  margin-right: -64rpx;
+  text-align: center;
+  line-height: 88rpx;
+  font-weight: 600;
 }
 .top-bar .top-bar-l {
   float: left;
@@ -55,128 +62,69 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.top-bar .top-bar-center {
-  font-size: 40rpx;
-  color: #272832;
-  font-weight: 400;
-  line-height: 88rpx;
-  text-align: center;
-  margin-right: 78rpx;
-}
 .main {
-  padding-top: 118rpx;
-  display: flex;
-  flex-direction: column;
+  padding: 108rpx 40rpx;
 }
-.main .headerCol {
-  display: flex;
-  flex-direction: column;
-}
-.main .headerCol .head {
-  display: flex;
-  flex-direction: row;
-}
-.main .headerCol .head .title {
-  flex: none;
-  margin: auto;
-  padding: 0 32rpx;
-  font-size: 32rpx;
-  color: #272832;
-  font-weight: 400;
-  line-height: 112rpx;
-}
-.main .headerCol .head .content {
-  flex: auto;
-  font-size: 32rpx;
-  color: rgba(39, 40, 50, 0.6);
-  line-height: 112rpx;
-  /*1．先强制一行内显示文本*/
-  white-space: nowrap;
-  /*2．超出的部分隐藏*/
-  overflow: hidden;
-  /*3．文字用省略号替代超出的部分*/
-  text-overflow: ellipsis;
-}
-.main .headerCol .head .content image {
-  width: 108rpx;
-  height: 100%;
-  border-radius: 20rpx;
-}
-.main .headerCol .head .more {
-  flex: none;
-  margin: auto;
-  font-family: "iconfont" !important;
-  font-size: 38rpx;
-  font-style: normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-.main .bt {
-  padding-top: 160rpx;
-  text-align: center;
-  line-height: 44rpx;
-  font-size: 36rpx;
-  color: #FF5D5B;
-  font-weight: 500;
-}
-.container {
-  position: fixed;
-  top: 260rpx;
-  height: 400rpx;
-  width: 100%;
-}
-.container .cropper-wrap {
-  height: calc(100% - 96rpx);
-}
-.modify {
-  position: fixed;
-  bottom: -100%;
-  left: 0;
-  z-index: 300;
-  height: 100%;
-  width: 100%;
+.main .requester {
+  margin-top: 100rpx;
+  padding: 20rpx;
   background: white;
+  box-shadow: 0rpx 24rpx 64rpx -8rpx rgba(0, 0, 0, 0.1);
+  border-radius: 20rpx;
 }
-.modify .modify-header {
+.main .request-top {
   display: flex;
   flex-direction: row;
-  padding-top: 25px;
-  width: 100%;
-  height: 88rpx;
-  align-items: center;
 }
-.modify .modify-header .close {
-  padding-left: 32rpx;
+.main .request-top .btn {
+  flex: none;
+  width: 160rpx;
+  height: 64rpx;
+  background: rgba(255, 93, 91, 0.1);
+  border-radius: 40rpx;
+  text-align: center;
+  line-height: 64rpx;
   font-size: 32rpx;
-  color: #272832;
-  font-weight: 400;
 }
-.modify .modify-header .title {
+.main .request-top .reject {
+  color: #ff5d5b;
+  background-color: rgba(255, 93, 91, 0.1);
+}
+.main .request-top .aggree {
+  color: black;
+  background-color: rgba(12, 255, 182, 0.5);
+}
+.main .request-top .user-icon {
   flex: auto;
-  font-size: 40rpx;
-  color: #272832;
-  font-weight: 600;
-  line-height: 88rpx;
   text-align: center;
 }
-.modify .modify-header .define {
-  padding-right: 32rpx;
-  font-size: 32rpx;
-  color: #00aaff;
-  font-weight: 400;
+.main .request-top .user-icon image {
+  margin-top: -25%;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
 }
-.modify .modify-main {
-  display: flex;
-  padding: 34rpx 32rpx 42rpx;
+.main .request-center {
+  text-align: center;
+  padding-top: 20rpx;
+  padding-bottom: 30rpx;
 }
-.modify .modify-main .modify-content {
-  flex: auto;
-  padding: 16rpx 20rpx;
-  height: 386rpx;
-  background: #F3F4F6;
+.main .request-center .title {
+  font-size: 36rpx;
+  font-weight: 550;
+  line-height: 48rpx;
+}
+.main .request-center .time {
+  font-size: 24rpx;
+  line-height: 32rpx;
+  color: rgba(39, 40, 50, 0.4);
+}
+.main .comments {
+  padding: 32rpx;
   border-radius: 20rpx;
-  font-size: 32rpx;
-  color: #272832;
-  font-weight: 400;
+  background: #f3f4f6;
+  font-size: 28rpx;
+  color: rgba(39, 40, 50, 0.8);
+  line-height: 40rpx;
 }
 

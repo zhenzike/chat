@@ -30,20 +30,38 @@
 }
 .content {
   padding-top: 25px;
-  position: relative;
+  background-color: #f3f4f6;
+  height: 100vh;
 }
 .top-bar {
   position: fixed;
-  z-index: 100;
+  display: flex;
+  z-index: 1000;
   top: 25px;
   left: 0;
   width: 100%;
   height: 88rpx;
-  background: rgba(255, 255, 255, 0);
+  background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid rgba(39, 40, 50, 0.1);
 }
+.top-bar .top-bar-r {
+  padding-top: 12rpx;
+  padding-right: 46rpx;
+}
+.top-bar .top-bar-r image {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+}
+.top-bar .top-bar-center {
+  flex: auto;
+  font-size: 40rpx;
+  color: #272832;
+  font-weight: 400;
+  line-height: 88rpx;
+  text-align: center;
+}
 .top-bar .top-bar-l {
-  float: left;
   padding-left: 32rpx;
   line-height: 88rpx;
   width: 88rpx;
@@ -55,128 +73,63 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.top-bar .top-bar-center {
-  font-size: 40rpx;
-  color: #272832;
-  font-weight: 400;
-  line-height: 88rpx;
-  text-align: center;
-  margin-right: 78rpx;
-}
-.main {
-  padding-top: 118rpx;
-  display: flex;
-  flex-direction: column;
-}
-.main .headerCol {
-  display: flex;
-  flex-direction: column;
-}
-.main .headerCol .head {
-  display: flex;
-  flex-direction: row;
-}
-.main .headerCol .head .title {
-  flex: none;
-  margin: auto;
-  padding: 0 32rpx;
-  font-size: 32rpx;
-  color: #272832;
-  font-weight: 400;
-  line-height: 112rpx;
-}
-.main .headerCol .head .content {
-  flex: auto;
-  font-size: 32rpx;
-  color: rgba(39, 40, 50, 0.6);
-  line-height: 112rpx;
-  /*1．先强制一行内显示文本*/
-  white-space: nowrap;
-  /*2．超出的部分隐藏*/
-  overflow: hidden;
-  /*3．文字用省略号替代超出的部分*/
-  text-overflow: ellipsis;
-}
-.main .headerCol .head .content image {
-  width: 108rpx;
+.chat {
   height: 100%;
-  border-radius: 20rpx;
-}
-.main .headerCol .head .more {
-  flex: none;
-  margin: auto;
-  font-family: "iconfont" !important;
-  font-size: 38rpx;
-  font-style: normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-.main .bt {
-  padding-top: 160rpx;
-  text-align: center;
-  line-height: 44rpx;
-  font-size: 36rpx;
-  color: #FF5D5B;
-  font-weight: 500;
-}
-.container {
-  position: fixed;
-  top: 260rpx;
-  height: 400rpx;
-  width: 100%;
-}
-.container .cropper-wrap {
-  height: calc(100% - 96rpx);
-}
-.modify {
-  position: fixed;
-  bottom: -100%;
-  left: 0;
-  z-index: 300;
-  height: 100%;
-  width: 100%;
-  background: white;
-}
-.modify .modify-header {
-  display: flex;
-  flex-direction: row;
-  padding-top: 25px;
-  width: 100%;
-  height: 88rpx;
-  align-items: center;
-}
-.modify .modify-header .close {
+  box-sizing: border-box;
   padding-left: 32rpx;
-  font-size: 32rpx;
-  color: #272832;
-  font-weight: 400;
+  padding-right: 32rpx;
+  padding-top: 88rpx;
 }
-.modify .modify-header .title {
-  flex: auto;
-  font-size: 40rpx;
-  color: #272832;
-  font-weight: 600;
-  line-height: 88rpx;
+.chat .chat-main {
+  display: flex;
+  flex-direction: column;
+}
+.chat .msg-main {
+  display: flex;
+  padding: 20rpx 0;
+}
+.chat .msg-main .user-icon {
+  flex: none;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+}
+.chat .chat-content {
+  flex-direction: row;
+}
+.chat .chat-content .chat-time {
+  font-size: 24rpx;
+  color: rgba(39, 40, 50, 0.3);
+  line-height: 34rpx;
+  padding: 20rpx 0;
   text-align: center;
 }
-.modify .modify-header .define {
-  padding-right: 32rpx;
-  font-size: 32rpx;
-  color: #00aaff;
-  font-weight: 400;
+.chat .msg-right {
+  flex-direction: row-reverse;
 }
-.modify .modify-main {
-  display: flex;
-  padding: 34rpx 32rpx 42rpx;
+.chat .msg-right .message-text {
+  margin-right: 18rpx;
+  background-color: #29ffa6;
+  border-radius: 20rpx 0 20rpx 20rpx;
+  color: #fff !important;
 }
-.modify .modify-main .modify-content {
-  flex: auto;
-  padding: 16rpx 20rpx;
-  height: 386rpx;
-  background: #F3F4F6;
-  border-radius: 20rpx;
+.chat .msg-left .message-text {
+  margin-left: 18rpx;
+  background-color: #fff;
+  border-radius: 0 20rpx 20rpx 20rpx;
+}
+.chat .message {
+  max-width: 480rpx;
+}
+.chat .message .message-text {
   font-size: 32rpx;
   color: #272832;
   font-weight: 400;
+  line-height: 44rpx;
+  padding: 16rpx 8rpx 16rpx 16rpx;
+}
+.chat .message image {
+  width: 400rpx;
+  border-radius: 20rpx;
 }
 

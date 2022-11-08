@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "资料卡",
+  "navigationBarTitleText": "好友请求列表",
   "enablePullDownRefresh": false,
   "navigationStyle": "custom",
   "usingComponents": {}

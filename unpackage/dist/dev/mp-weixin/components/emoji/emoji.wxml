@@ -1,0 +1,1 @@
+<view class="emoji"><block wx:for="{{emoji}}" wx:for-item="itemLine" wx:for-index="index" wx:key="index"><view class="emoji-line"><block wx:for="{{itemLine}}" wx:for-item="item" wx:for-index="i" wx:key="i"><view data-event-opts="{{[['tap',[['choose',['$0'],[[['emoji','',index],['','',i]]]]]]]}}" class="emoji-item" bindtap="__e">{{item}}</view></block></view></block></view>

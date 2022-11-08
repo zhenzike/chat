@@ -11,9 +11,10 @@
 				<image src="../../static/images/image/1.jpeg"></image>
 			</view>
 		</view>
-		<scroll-view class="chat" scroll-y="true" scroll-with-animation="true">
+		<scroll-view class="chat" scroll-y="true" scroll-with-animation="true" :scroll-into-view="scrollTo"
+			:style="{paddingBottom:pdBottom+'px'}">
 			<view class="chat-main">
-				<view class="chat-content" v-for="(item,index) in msgs" :key="index">
+				<view class="chat-content" v-for="(item,index) in msgs" :key="index" :id="'msg'+item.tip">
 					<view class="chat-time" v-if="item.time!=''">{{item.time|changeTime}}</view>
 					<view class="msg-main msg-left" v-if="item.id!='b'">
 						<image class="user-icon" :src="item.imgUrl"></image>
@@ -21,12 +22,12 @@
 							<view class="message-text">{{item.message}}</view>
 						</view>
 						<view class="message" v-if="item.type==1">
-							<image :src="item.message" mode="widthFix"  @tap="previewImage(item.message)"></image>
+							<image :src="item.message" mode="widthFix" @tap="previewImage(item.message)"></image>
 						</view>
 					</view>
 					<view class="msg-main msg-right" v-if="item.id!='a'">
 						<image class="user-icon" :src="item.imgUrl"></image>
-						<view class="message"  v-if="item.type==0">
+						<view class="message" v-if="item.type==0">
 							<view class="message-text">{{item.message}}</view>
 						</view>
 						<view class="message" v-if="item.type==1">
@@ -36,7 +37,7 @@
 				</view>
 			</view>
 		</scroll-view>
-		<chatBox></chatBox>
+		<chatBox @msgs="inputs" @getBoxHeight="getBoxHeight"></chatBox>
 	</view>
 </template>
 
@@ -48,8 +49,10 @@
 		data() {
 			return {
 				msgs: [],
-				previewImg:[],//预览图片
-				oldTime:new Date()
+				previewImg: [], //预览图片
+				oldTime: new Date(),
+				scrollTo: '', //控制聊天内容滚动至底部
+				pdBottom: 50
 			}
 		},
 		onLoad() {
@@ -63,38 +66,68 @@
 			},
 			getMsg() {
 				let msg = datas.message()
-				for (let i = 0; i < msg.length; i++) {
+				for (var i = 0; i < msg.length; i++) { //这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
 					msg[i].imgUrl = `../../static/images/image/${msg[i].imgUrl}`;
-					let t=myFunction.spaceTime(this.oldTime,msg[i].time);
-					if(t){
-						this.oldTime=t;//方便将当前回复时间作为下一条回复消息时间的比对对象
+					let t = myFunction.spaceTime(this.oldTime, msg[i].time);
+					if (t) {
+						this.oldTime = t; //方便将当前回复时间作为下一条回复消息时间的比对对象
 					}
-					msg[i].time=t
-					
+					msg[i].time = t
+
 					if (msg[i].type == 1) {
 						msg[i].message = `../../static/images/image/${msg[i].message}`;
 						this.previewImg.unshift(msg[i].message)
 					}
 					this.msgs.unshift(msg[i]) //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
 				}
-				
+				this.$nextTick(function() {
+					this.scrollTo = 'msg' + this.msgs[i - 1].tip
+				})
+
 			},
+
+
 			// 使用的uni提供的API预览图片
-			previewImage(msg){
-				let index=this.previewImg.findIndex(item=>item==msg)//通过传入的地址信息，寻找对应的图片索引，锁定点击时，应该预览的图片
-				uni.previewImage({			
-					        current:index,
-							urls: this.previewImg,
-							longPressActions: {
-								itemList: ['发送给朋友', '保存图片', '收藏'],
-								success: function(data) {
-									console.log('选中了第' + (data.tapIndex + 1) + '个按钮,第' + (data.index + 1) + '张图片');
-								},
-								fail: function(err) {
-									console.log(err.errMsg);
-								}
-							}
-						});
+			previewImage(msg) {
+				let index = this.previewImg.findIndex(item => item == msg) //通过传入的地址信息，寻找对应的图片索引，锁定点击时，应该预览的图片
+				uni.previewImage({
+					current: index,
+					urls: this.previewImg,
+					longPressActions: {
+						itemList: ['发送给朋友', '保存图片', '收藏'],
+						success: function(data) {
+							console.log('选中了第' + (data.tapIndex + 1) + '个按钮,第' + (data.index + 1) + '张图片');
+						},
+						fail: function(err) {
+							console.log(err.errMsg);
+						}
+					}
+				});
+			},
+			//滚动到底部
+			goBottom() {
+				this.scrollTo = '';
+				this.$nextTick(function() {
+					let len = this.msgs.length - 1
+					this.scrollTo = 'msg' + this.msgs[len].tip
+				})
+			},
+			inputs(e) {
+				let len = this.msgs.length;
+				let my = {
+					id: 'b',
+					imgUrl: '2.jpeg',
+					tip: len,
+					type: e.type,
+					time: new Date(),
+					message: e.message
+				};
+				this.msgs.push(my);
+				this.goBottom()
+			},
+			getBoxHeight(e) {
+				this.pdBottom = e //这里由于传过来的是以px单位为基础的数字，只能将原本的bottom设置成px单位方便设置
+				this.goBottom()
 			}
 		},
 		filters: {
@@ -102,7 +135,7 @@
 				return myFunction.dateTime(time)
 			}
 		},
-		components:{
+		components: {
 			chatBox
 		}
 	}
@@ -172,12 +205,12 @@
 
 	.chat {
 		height: 100%;
+		box-sizing: border-box;
+		padding-left: 32rpx;
+		padding-right: 32rpx;
+		padding-top: 88rpx;
 
 		.chat-main {
-			padding-left: 32rpx;
-			padding-right: 32rpx;
-			padding-top: 100rpx;
-			padding-bottom: 12rpx;
 			display: flex;
 			flex-direction: column;
 		}
@@ -237,8 +270,9 @@
 				line-height: 44rpx;
 				padding: 16rpx 8rpx 16rpx 16rpx;
 			}
-			image{
-				width: 400rpx;			
+
+			image {
+				width: 400rpx;
 				border-radius: 20rpx;
 			}
 		}

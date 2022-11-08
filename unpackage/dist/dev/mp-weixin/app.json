@@ -4,8 +4,10 @@
     "pages/login/login",
     "pages/registered/registered",
     "pages/search/search",
-    "pages/userhome/userhome",
-    "pages/userdetail/userdetail"
+    "pages/userdetail/userdetail",
+    "pages/friendrequest/friendrequest",
+    "pages/chatroom/chatroom",
+    "pages/userhome/userhome"
   ],
   "subPackages": [],
   "window": {

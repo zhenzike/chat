@@ -36,22 +36,12 @@
 				"navigationStyle":"custom"  //取消默认导航栏
             }
             
-        }
-        ,{
-            "path" : "pages/userhome/userhome",
-            "style" :                                                                                    
-            {
-                "navigationBarTitleText": "",
-                "enablePullDownRefresh": false,
-				"navigationStyle":"custom" 
-            }
-            
-        }
-        ,{
+        },
+		{
             "path" : "pages/userdetail/userdetail",
             "style" :                                                                                    
             {
-                "navigationBarTitleText": "",
+                "navigationBarTitleText": "用户详情",
                 "enablePullDownRefresh": false,
 				"navigationStyle":"custom" 
             }
@@ -61,7 +51,7 @@
             "path" : "pages/friendrequest/friendrequest",
             "style" :                                                                                    
             {
-                "navigationBarTitleText": "",
+                "navigationBarTitleText": "好友请求列表",
                 "enablePullDownRefresh": false,
 				"navigationStyle":"custom" 
             }
@@ -71,7 +61,17 @@
             "path" : "pages/chatroom/chatroom",
             "style" :                                                                                    
             {
-                "navigationBarTitleText": "",
+                "navigationBarTitleText": "聊天页面",
+                "enablePullDownRefresh": false,
+				"navigationStyle":"custom" 
+            }
+            
+        }
+        ,{
+            "path" : "pages/userhome/userhome",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "资料卡",
                 "enablePullDownRefresh": false,
 				"navigationStyle":"custom" 
             }

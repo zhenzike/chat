@@ -150,10 +150,12 @@
 			.search {
 				display: inline-block;
 				margin-right: 20rpx;
+					border: 1px solid red;
 			}
 
 			.add {
 				display: inline-block;
+				border: 1px solid red;
 			}
 
 			image {

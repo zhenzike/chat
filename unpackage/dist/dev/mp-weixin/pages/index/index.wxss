@@ -73,9 +73,11 @@
 .top-bar .top-bar-right .search {
   display: inline-block;
   margin-right: 20rpx;
+  border: 1px solid red;
 }
 .top-bar .top-bar-right .add {
   display: inline-block;
+  border: 1px solid red;
 }
 .top-bar .top-bar-right image {
   width: 52rpx;
