@@ -7,7 +7,9 @@
     "pages/userdetail/userdetail",
     "pages/friendrequest/friendrequest",
     "pages/chatroom/chatroom",
-    "pages/userhome/userhome"
+    "pages/userhome/userhome",
+    "pages/buildgroups/buildgroups",
+    "pages/grouphome/grouphome"
   ],
   "subPackages": [],
   "window": {

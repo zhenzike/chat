@@ -17,6 +17,8 @@
 					<view class="time">202-11-12</view>
 					<view class="sign">无论一个朋友对你有多好，总有一天他做的某件事会让你悲哀，而到时你就应学会原谅。</view>
 				</view>
+
+				<!-- 群成员 -->
 				<view class="member">
 					<view class="top">
 						<view class="title">群成员</view>
@@ -24,7 +26,7 @@
 						<image src="../../static/images/common/right.png"></image>
 					</view>
 					<view class="member-ls">
-						<view class="list" v-for="(item,index) in groupMenber" :key="index">
+						<view class="list" v-for="(item,index) in groupMenber.slice(0,4)" :key="index">
 							<view class="msg">
 								<image class="X" src="../../static/images/common/flase.png"></image>
 								<image class="msg-icon" :src="item.imgUrl"></image>
@@ -39,8 +41,60 @@
 						</view>
 					</view>
 				</view>
-			</view>
 
+				<!-- 群设置 -->
+				<view class="item">
+					<view class="row">
+						<view class="title">群名称</view>
+						<view class="cont">{{dataArr.groupName}}</view>
+						<view class="more">
+							<image src="../../static/images/common/right.png" @tap="aniModify('群名称',dataArr.groupName)"></image>
+						</view>
+					</view>
+					<view class="row">
+						<view class="title">群头像</view>
+						<view class="cont">
+							<image :src="imgurl" @tap="sendImg"></image>
+						</view>
+						<view class="more">
+							<image src="../../static/images/common/right.png"></image>
+						</view>
+					</view>
+					<view class="row">
+						<view class="title">群公告</view>
+						<view class="cont">{{dataArr.groupTip}}</view>
+						<view class="more">
+							<image src="../../static/images/common/right.png" @tap="aniModify('群公告',dataArr.groupTip)"></image>
+						</view>
+					</view>
+					<view class="row">
+						<view class="title">群内昵称</view>
+						<view class="cont">{{dataArr.myName}}</view>
+						<view class="more">
+							<image src="../../static/images/common/right.png" @tap="aniModify('群内昵称',dataArr.myName)"></image>
+						</view>
+					</view>
+					<view class="row">
+						<view class="title">消息免打扰</view>
+						<view class="switch">
+							<switch @change="switch1Change" style="transform:scale(0.9)" />
+						</view>
+					</view>
+				</view>
+
+			</view>
+			<view class="bt">退出群聊</view>
+		</view>
+		<!-- 修改弹窗 -->
+		<view class="modify" :animation="modifyAni">
+			<view class="modify-header">
+				<view class="close" @tap="aniModify">取消</view>
+				<view class="title">{{modifyTitle}}</view>
+				<view class="define" @tap="modifyDefine(modifyData)">确定</view>
+			</view>
+			<view class="modify-main">
+				<textarea v-model="modifyData" class="modify-content"></textarea>
+			</view>
 		</view>
 	</view>
 </template>
@@ -52,14 +106,27 @@
 			return {
 				id: 0,
 				imgurl: '',
-				groupMenber: []
+				groupMenber: [],
+				modifyAni: {},
+				modifyData: '想要修改的内容',
+				modifyTitle:'',
+				ismodify: false,
+				modifyHeight: '0', //修改页面高度
+				oldData:'',
+				dataArr:{
+					groupName:'黑色玫瑰',
+					groupTip:'无论一个朋友对你有多好，总有一天他做的某件事会让你悲哀，而到时你就应学会原谅。',
+					myName:'郭少侠'
+				}
 			}
 		},
 		onLoad(e) {
 			this.id = e.id
 			this.imgurl = e.img
 			this.getMember()
-
+		},
+		onReady() {
+			this.getElementStyle()
 		},
 		methods: {
 			back() {
@@ -74,9 +141,54 @@
 					k.imgUrl = `../../static/images/image/${k.imgUrl}`
 				})
 				this.groupMenber = member
-				console.log(this.groupMenber);
-			}
-		}
+			
+			},
+			switch1Change() {
+				console.log('开');
+			},
+			sendImg(e) {
+				uni.chooseImage({
+					count: 1, //默认9
+					sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+					sourceType: [e], //从相册选择
+					success: (res) => {
+						this.imgurl = res.tempFilePaths[0];
+					}
+				});
+			},
+			aniModify(type, data) {
+			
+				this.ismodify = !this.ismodify
+				var animation = uni.createAnimation({
+					duration: 300,
+					timingFunction: 'ease',
+				})
+				if (this.ismodify) {
+					animation.bottom(0).step()
+					this.modifyTitle = type;
+					this.modifyData = data;
+					this.oldData=data;
+				} else {
+					animation.bottom(-this.modifyHeight).step();
+				}
+
+				this.modifyAni = animation.export();
+			},
+			getElementStyle() {
+				const query = uni.createSelectorQuery().in(this);
+				query.select('.modify').boundingClientRect(data => {
+					this.modifyHeight = data.height;
+				}).exec();
+			},
+			//确认修改签名等
+			modifyDefine(data) {				
+				 let arr=Object.keys(this.dataArr)
+				 let key=arr.find(k=>this.dataArr[k]==this.oldData)
+				 this.dataArr[key]=data;
+				 console.log(this.dataArr);
+				this.aniModify()
+			},
+		},
 	}
 </script>
 
@@ -292,6 +404,132 @@
 					visibility: hidden;
 				}
 
+			}
+
+			.item {
+				display: flex;
+				flex-direction: column;
+				padding: 40rpx 32rpx;
+				width: 100%;
+				border-bottom: 1px solid #eee;
+				box-sizing: border-box;
+
+				.row {
+					flex: none;
+					display: flex;
+					flex-direction: row;
+					line-height: 88rpx;
+
+					.title {
+						flex: none;
+						font-size: 32rpx;
+						color: #272832;
+						font-weight: 400;
+						margin: auto;
+
+					}
+
+					.cont {
+						padding: 0 20rpx;
+						flex: auto;
+						font-size: 32rpx;
+						color: rgba(39, 40, 50, 0.60);
+						font-weight: 400;
+						white-space: nowrap;
+						overflow: hidden;
+						text-overflow: ellipsis;
+
+						image {
+							width: 80rpx;
+							height: 80rpx;
+							border-radius: 20rpx;
+						}
+					}
+
+					.more {
+						flex: none;
+						margin: auto;
+
+						image {
+							width: 32rpx;
+							height: 32rpx;
+						}
+					}
+
+					.switch {
+						text-align: right;
+						flex: auto
+					}
+				}
+			}
+
+
+		}
+
+		.bt {
+			padding-top: 50rpx;
+			text-align: center;
+			line-height: 44rpx;
+			font-size: 36rpx;
+			color: #FF5D5B;
+			font-weight: 500;
+		}
+	}
+
+	.modify {
+		position: fixed;
+		bottom: -100%;
+		left: 0;
+		z-index: 1005;
+		height: 100%;
+		width: 100%;
+		background: white;
+
+		.modify-header {
+			display: flex;
+			flex-direction: row;
+			padding-top: var(--status-bar-height);
+			width: 100%;
+			height: 88rpx;
+			align-items: center;
+
+			.close {
+				padding-left: 32rpx;
+				font-size: 32rpx;
+				color: #272832;
+				font-weight: 400;
+			}
+
+			.title {
+				flex: auto;
+				font-size: 40rpx;
+				color: #272832;
+				font-weight: 600;
+				line-height: 88rpx;
+				text-align: center;
+			}
+
+			.define {
+				padding-right: 32rpx;
+				font-size: 32rpx;
+				color: #00aaff;
+				font-weight: 400;
+			}
+		}
+
+		.modify-main {
+			display: flex;
+			padding: 34rpx 32rpx 42rpx;
+
+			.modify-content {
+				flex: auto;
+				padding: 16rpx 20rpx;
+				height: 386rpx;
+				background: #F3F4F6;
+				border-radius: 20rpx;
+				font-size: 32rpx;
+				color: #272832;
+				font-weight: 400;
 			}
 		}
 	}

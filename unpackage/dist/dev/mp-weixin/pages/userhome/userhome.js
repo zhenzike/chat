@@ -248,7 +248,6 @@ var _default =
     getElementStyle: function getElementStyle() {var _this = this;
       var query = uni.createSelectorQuery().in(this);
       query.select('.add-friend').boundingClientRect(function (data) {
-        console.log(data.height);
         _this.addHeight = data.height;
       }).exec();
     } },

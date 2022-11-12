@@ -82,6 +82,7 @@
 		</view>
 		<!-- 裁剪工具 -->
 		
+		<!-- 修改弹窗 -->
 		<view class="modify" :animation="modifyAni">
 			<view class="modify-header">
 				<view class="close" @tap="aniModify">取消</view>
@@ -160,7 +161,7 @@
 			isContainer() {
 				this.containerIs = !this.containerIs
 			},
-			//修改数据栏
+			//修改数据栏弹出动画
 			aniModify(type,data) {	
 				this.ismodify = !this.ismodify
 				var animation = uni.createAnimation({
