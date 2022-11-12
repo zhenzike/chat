@@ -13,7 +13,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "",
-  "appid": "touristappid",
+  "appid": "wx9b711d3fc8b3ef7d",
   "projectname": "tongXun",
   "condition": {
     "search": {
@@ -29,8 +29,15 @@
       "list": []
     },
     "miniprogram": {
-      "current": -1,
-      "list": []
+      "current": 0,
+      "list": [
+        {
+          "name": "",
+          "query": "",
+          "id": 0,
+          "pathName": "pages/chatroom/chatroom"
+        }
+      ]
     }
   }
 }

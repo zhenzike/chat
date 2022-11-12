@@ -194,6 +194,29 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var _data = _interopRequireDefault(__webpack_require__(/*! ../../commons/js/data.js */ 18));
 var _myFunction = _interopRequireDefault(__webpack_require__(/*! ../../commons/js/myFunction.js */ 19));function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };} //
 //
@@ -238,49 +261,83 @@ var _myFunction = _interopRequireDefault(__webpack_require__(/*! ../../commons/j
 //
 //
 //
-var chatBox = function chatBox() {__webpack_require__.e(/*! require.ensure | components/chat-box/chat-box */ "components/chat-box/chat-box").then((function () {return resolve(__webpack_require__(/*! ../../components/chat-box/chat-box.vue */ 88));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default = { data: function data() {return { msgs: [], previewImg: [], //预览图片
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+var chatBox = function chatBox() {__webpack_require__.e(/*! require.ensure | components/chat-box/chat-box */ "components/chat-box/chat-box").then((function () {return resolve(__webpack_require__(/*! ../../components/chat-box/chat-box.vue */ 88));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var innerAudioContext = uni.createInnerAudioContext(); //这个值必须定义在外部，否则音频直接会互性干扰
+var _default = { data: function data() {return { msgs: [], previewImg: [], //预览图片
       oldTime: new Date(), scrollTo: '', //控制聊天内容滚动至底部
-      pdBottom: 50 };}, onLoad: function onLoad() {this.getMsg();}, methods: { back: function back() {uni.navigateBack({ delta: 1 });}, getMsg: function getMsg() {var msg = _data.default.message();for (var i = 0; i < msg.length; i++) {//这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
+      pdBottom: 50, animationLoading: {} //加载动画
+    };}, onLoad: function onLoad() {this.getMsg();this.loadingAni();}, methods: { back: function back() {uni.navigateBack({ delta: 1 });}, getMsg: function getMsg() {var msg = _data.default.message();for (var i = 0; i < msg.length; i++) {//这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
         msg[i].imgUrl = "../../static/images/image/".concat(msg[i].imgUrl);var t = _myFunction.default.spaceTime(this.oldTime, msg[i].time);if (t) {this.oldTime = t; //方便将当前回复时间作为下一条回复消息时间的比对对象
-        }msg[i].time = t;if (msg[i].type == 1) {msg[i].message = "../../static/images/image/".concat(msg[i].message);this.previewImg.unshift(msg[i].message);}this.msgs.unshift(msg[i]); //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
+        }msg[i].time = t;if (msg[i].type == 1) {msg[i].message = "../../static/images/image/".concat(msg[i].message);this.previewImg.unshift(msg[i].message); //将图片插入图片数组
+        }this.msgs.unshift(msg[i]); //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
       }this.$nextTick(function () {this.scrollTo = 'msg' + this.msgs[i - 1].tip;});}, // 使用的uni提供的API预览图片
     previewImage: function previewImage(msg) {var index = this.previewImg.findIndex(function (item) {return item == msg;}); //通过传入的地址信息，寻找对应的图片索引，锁定点击时，应该预览的图片
-      uni.previewImage({ current: index, urls: this.previewImg, longPressActions: {
-          itemList: ['发送给朋友', '保存图片', '收藏'],
-          success: function success(data) {
-            console.log('选中了第' + (data.tapIndex + 1) + '个按钮,第' + (data.index + 1) + '张图片');
-          },
-          fail: function fail(err) {
-            console.log(err.errMsg);
-          } } });
-
-
-    },
-    //滚动到底部
-    goBottom: function goBottom() {
-      this.scrollTo = '';
-      this.$nextTick(function () {
-        var len = this.msgs.length - 1;
-        this.scrollTo = 'msg' + this.msgs[len].tip;
-      });
-    },
-    inputs: function inputs(e) {
-      var len = this.msgs.length;
+      uni.previewImage({ current: index, urls: this.previewImg, longPressActions: { itemList: ['发送给朋友', '保存图片', '收藏'], success: function success(data) {console.log('选中了第' + (data.tapIndex + 1) + '个按钮,第' + (data.index + 1) + '张图片');}, fail: function fail(err) {console.log(err.errMsg);} } });}, //滚动到底部
+    goBottom: function goBottom() {this.scrollTo = '';this.$nextTick(function () {var len = this.msgs.length - 1;this.scrollTo = 'msg' + this.msgs[len].tip;});}, inputs: function inputs(e) {var len = this.msgs.length;var nowTime = new Date();var t = _myFunction.default.spaceTime(this.oldTime, nowTime);if (t) {this.oldTime = t; //方便将当前回复时间作为下一条回复消息时间的比对对象
+      }
+      nowTime = t;
       var my = {
         id: 'b',
-        imgUrl: '2.jpeg',
+        imgUrl: "../../static/images/image/2.jpeg",
         tip: len,
-        type: 0,
-        time: new Date(),
-        message: e };
+        type: e.type,
+        time: nowTime,
+        message: e.message };
 
       this.msgs.push(my);
       this.goBottom();
+      if (e.type == 1) {
+        this.previewImg.push(e.message);
+      }
     },
     getBoxHeight: function getBoxHeight(e) {
       this.pdBottom = e; //这里由于传过来的是以px单位为基础的数字，只能将原本的bottom设置成px单位方便设置
       this.goBottom();
+    },
+    //音频播放
+    playVoice: function playVoice(e) {
+
+      innerAudioContext.src = e;
+      innerAudioContext.play();
+    },
+
+    //顶部加载动画
+    loadingAni: function loadingAni() {var _this = this;
+
+      var animation = uni.createAnimation({
+        duration: 1000,
+        timingFunction: 'step-start' });
+
+      var i = 1;
+      var loadingRotate = setInterval(function () {
+        animation.rotate(i * 30).step();
+        _this.animationLoading = animation.export();
+        i++;
+      }, 80);
     } },
+
 
   filters: {
     changeTime: function changeTime(time) {

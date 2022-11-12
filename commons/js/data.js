@@ -127,14 +127,18 @@ export default {
 	},
 	//聊天消息
 	message(){
+	//	type:0, 内容类型(0文字，1图片链接，2音频链接...)
 		let msg=[
 			{				
-					id:'a',
-					imgUrl: '4.jpeg',
+					id:'b',
+					imgUrl: '2.jpeg',
 					tip: 0,
-					type:0, //内容类型(0文字，1图片链接，2音频链接...)
+					type:2, //内容类型(0文字，1图片链接，2音频链接...)
 					time: new Date()-1000,
-					message: '还没来得及见到桂树，周遭却早已沉浸在桂花香'				
+					message: {
+						voice:'a',
+						time:60
+					}			
 			},
 			{
 					id:'a',
@@ -154,10 +158,10 @@ export default {
 			},
 			{
 					id:'b',
-					imgUrl: '2.jpeg'-1000*60*10,
+					imgUrl: '2.jpeg',
 					tip: 3,
 					type:0,
-					time: new Date(),
+					time: new Date()-1000*60*10,
 					message: '你四处寻觅，仿佛在不经意间，'				
 			},
 			{
@@ -171,7 +175,79 @@ export default {
 			{
 					id:'b',
 					imgUrl: '2.jpeg',
-					tip: 4,
+					tip: 5,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 6,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 7,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 8,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 9,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 10,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 11,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 12,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 13,
+					type:0,
+					time: new Date()-1000*60*60*24*1000,
+					message: '2. 已经比较久了'				
+			},
+			{
+					id:'b',
+					imgUrl: '2.jpeg',
+					tip: 14,
 					type:0,
 					time: new Date()-1000*60*60*24*1000,
 					message: '2. 已经比较久了'				
@@ -179,7 +255,7 @@ export default {
 			{
 					id:'a',
 					imgUrl: '2.jpeg',
-					tip: 4,
+					tip: 15,
 					type:0,
 					time: new Date()-1000*60*60*24*1000*10,
 					message: '1.很久以前'				

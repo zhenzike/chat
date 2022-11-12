@@ -2804,14 +2804,18 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
   },
   //聊天消息
   message: function message() {
+    //	type:0, 内容类型(0文字，1图片链接，2音频链接...)
     var msg = [
     {
-      id: 'a',
-      imgUrl: '4.jpeg',
+      id: 'b',
+      imgUrl: '2.jpeg',
       tip: 0,
-      type: 0, //内容类型(0文字，1图片链接，2音频链接...)
+      type: 2, //内容类型(0文字，1图片链接，2音频链接...)
       time: new Date() - 1000,
-      message: '还没来得及见到桂树，周遭却早已沉浸在桂花香' },
+      message: {
+        voice: 'a',
+        time: 60 } },
+
 
     {
       id: 'a',
@@ -2831,10 +2835,10 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
     {
       id: 'b',
-      imgUrl: '2.jpeg' - 1000 * 60 * 10,
+      imgUrl: '2.jpeg',
       tip: 3,
       type: 0,
-      time: new Date(),
+      time: new Date() - 1000 * 60 * 10,
       message: '你四处寻觅，仿佛在不经意间，' },
 
     {

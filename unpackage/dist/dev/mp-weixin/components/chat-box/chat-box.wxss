@@ -69,4 +69,100 @@
   background: #ecedee;
   box-shadow: 0 -1rpx 0 0 rgba(0, 0, 0, 0.1);
 }
+.emojiBox .emoji-send {
+  width: 260rpx;
+  height: 104rpx;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  display: flex;
+}
+.emojiBox .emoji-send .emoji-send-del {
+  flex: 1;
+  margin: auto;
+  margin-right: 20rpx;
+  width: 120rpx;
+  height: 60rpx;
+  background-color: rgba(39, 40, 50, 0.4);
+  font-size: 32rpx;
+  text-align: center;
+  line-height: 60rpx;
+  border-radius: 12rpx;
+}
+.emojiBox .emoji-send .emoji-send-bt {
+  background-color: #29ffa6;
+  flex: 1;
+  margin: auto;
+  margin-right: 20rpx;
+  width: 120rpx;
+  height: 60rpx;
+  font-size: 32rpx;
+  text-align: center;
+  line-height: 60rpx;
+  border-radius: 12rpx;
+}
+.more {
+  width: 100%;
+  height: 436rpx;
+  background: #ecedee;
+  box-shadow: 0 -1rpx 0 0 rgba(0, 0, 0, 0.1);
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+.more .more-list {
+  width: 25%;
+  text-align: center;
+  float: left;
+}
+.more .more-list image {
+  width: 72rpx;
+  height: 72rpx;
+  padding: 24rpx;
+  background-color: white;
+  border-radius: 24rpx;
+}
+.more .more-list .more-list-title {
+  font-size: 24rpx;
+  color: rgba(39, 40, 50, 0.5);
+  line-height: 34rpx;
+}
+.voice-bg {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+}
+.voice-bg .voice-bg-len {
+  height: 84rpx;
+  width: 600rpx;
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 42rpx;
+  text-align: center;
+}
+.voice-bg .voice-bg-time {
+  display: inline-block;
+  max-width: 600rpx;
+  min-width: 120rpx;
+  width: 120rpx;
+  line-height: 84rpx;
+  background: #29ffa6;
+  border-radius: 42rpx;
+}
+.voice-bg .voice-del {
+  position: absolute;
+  bottom: 120rpx;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 500;
+}
 

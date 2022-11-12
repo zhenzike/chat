@@ -114,7 +114,6 @@
 			getElementStyle() {
 				const query = uni.createSelectorQuery().in(this);
 				query.select('.add-friend').boundingClientRect(data => {
-					console.log(data.height);
 					this.addHeight=data.height;
 				}).exec();
 			}

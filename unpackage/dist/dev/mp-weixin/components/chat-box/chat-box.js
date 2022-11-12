@@ -114,7 +114,7 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(uni) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var choEmoji = function choEmoji() {__webpack_require__.e(/*! require.ensure | components/emoji/emoji */ "components/emoji/emoji").then((function () {return resolve(__webpack_require__(/*! ../emoji/emoji.vue */ 95));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default =
+/* WEBPACK VAR INJECTION */(function(uni) {Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var choEmoji = function choEmoji() {__webpack_require__.e(/*! require.ensure | components/emoji/emoji */ "components/emoji/emoji").then((function () {return resolve(__webpack_require__(/*! ../emoji/emoji.vue */ 95));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};
 
 
 
@@ -138,50 +138,213 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//用于录音
+var recorderManager = uni.getRecorderManager();
+// const innerAudioContext = uni.createInnerAudioContext();
+
+var voiceTimeInterval;var _default =
 {
   data: function data() {
     return {
       inVoice: false,
       openEmoji: false,
-      msg: '' //输入框内容
-    };
+      msg: '', //输入框内容
+      openMore: false,
+      time: 0,
+      voiceBg: false,
+      voiceTime: 0,
+      pageY: 0 };
 
   },
   methods: {
     changeVoice: function changeVoice() {
       this.inVoice = !this.inVoice;
+      this.chooseInput();
     },
     emoji: function emoji() {var _this = this;
+      if (this.inVoice) {
+        return;
+      }
       this.openEmoji = !this.openEmoji;
+      this.openMore = false;
       setTimeout(function () {
         _this.getElementHeight(); //通过异步延迟获取高度
       }, 0);
 
     },
+    more: function more() {var _this2 = this;
+
+      if (this.inVoice) {
+        return;
+      }
+      this.openMore = !this.openMore;
+      this.openEmoji = false;
+      setTimeout(function () {
+        _this2.getElementHeight(); //通过异步延迟获取高度
+      }, 0);
+    },
     // 向聊天页面发送文字
     inputs: function inputs(e) {
       var chatContent = e.detail.value;
       var pos = chatContent.indexOf('\n');
+
       if (pos != -1 && chatContent.length > 1) {
-        this.$emit('msgs', this.msg);
-        this.msg = '';
+        this.send(this.msg, 0);
       }
+
     },
-    getElementHeight: function getElementHeight() {var _this2 = this;
+    //在表情页面中发送消息
+    emojiInputs: function emojiInputs(e) {
+      if (this.msg.length > 0) {
+        this.send(this.msg, 0);
+      }
+
+    },
+    //在表情页面中退格
+    emojiDel: function emojiDel() {
+      if (this.msg.length > 0) {
+        this.msg = this.msg.substring(0, this.msg.length - 2);
+      }
+
+    },
+    getElementHeight: function getElementHeight() {var _this3 = this;
       var query = uni.createSelectorQuery().in(this);
       query.select('.chat-box').boundingClientRect(function (data) {
-        _this2.$emit('getBoxHeight', data.height);
+        _this3.$emit('getBoxHeight', data.height);
       }).exec();
     },
     chooseEm: function chooseEm(emoji) {
-      console.log(emoji);
+      this.msg = this.msg + emoji;
     },
-    chooseInput: function chooseInput() {var _this3 = this;
+    chooseInput: function chooseInput() {var _this4 = this;
       this.openEmoji = false;
+      this.openMore = false;
       setTimeout(function () {
-        _this3.getElementHeight(); //通过异步延迟获取高度
+        _this4.getElementHeight(); //通过异步延迟获取高度
       }, 0);
-    } },
+    },
+    // 发送
+    send: function send(msg, type) {
+      var data = {
+        message: msg,
+        type: type };
+
+      this.$emit('msgs', data);
+      this.msg = '';
+    },
+
+    //发送图片
+    sendImg: function sendImg(e) {var _this5 = this;
+      if (e === 'album') {
+        uni.chooseImage({
+          count: 6, //默认9
+          sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+          sourceType: [e], //从相册选择
+          success: function success(res) {
+            var filePaths = res.tempFilePaths;
+            for (var i = 0; i < filePaths.length; i++) {
+              _this5.send(filePaths[i], 1);
+            }
+          } });
+
+      } else {
+        uni.chooseImage({
+          count: 1, //默认9
+          sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
+          sourceType: [e], //从相机选择
+          success: function success(res) {
+            console.log(JSON.stringify(res.tempFilePaths));
+          } });
+
+      }
+
+    },
+
+    // 以下函数为点击录音的处理函数
+    voiceStart: function voiceStart(e) {var _this6 = this;
+      this.pageY = e.changedTouches[0].pageY;
+
+      this.voiceTime = 0;
+      this.voiceBg = true;
+      try {
+        recorderManager.start(); //注意：这类方法在浏览器中不支持
+      } catch (e) {
+        console.log('浏览器不支持uni的录音功能');
+      }
+      this.time = e.timeStamp;
+
+      voiceTimeInterval = setInterval(function () {
+        _this6.voiceTime++;
+      }, 1000);
+
+    },
+    voiceMove: function voiceMove(e) {
+      if (this.pageY - e.changedTouches[0].pageY > 120) {
+        this.voiceBg = false;
+      }
+    },
+    voiceEnd: function voiceEnd(e) {var _this7 = this;
+
+      clearInterval(voiceTimeInterval);
+      try {
+        recorderManager.stop();
+      } catch (e) {
+        console.log('浏览器不支持uni的录音功能');
+      }
+
+      var voiceTime = Math.ceil((e.timeStamp - this.time) / 1000); //录音时长
+      recorderManager.onStop(function (res) {//获取录音地址
+        var data = {
+          voice: res.tempFilePath,
+          time: voiceTime };
+
+
+        if (_this7.voiceBg) {
+
+          _this7.send(data, 2);
+        }
+        _this7.voiceBg = false;
+      });
+
+    }
+
+    // 以上函数为点击录音的处理函数
+  },
+
 
   components: {
     choEmoji: choEmoji } };exports.default = _default;
