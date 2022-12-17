@@ -13,43 +13,93 @@
 		<view class="main">
 			<view class="title">登录</view>
 			<view class="inputs">
-				<input class="user" type="text" placeholder="请输入账号" placeholder-style="color:#aaa;font-width:400"
-					@blur="getuser">
-				<input class="pas" type="password" placeholder="请输入密码" placeholder-style="color:#aaa;font-width:400"
-					@blur="getpas">
+				<input class="user" v-model="user" type="text" placeholder="请输入账号"
+					placeholder-style="color:#aaa;font-width:400">
+				<input class="pas" v-model="password" type="password" placeholder="请输入密码"
+					placeholder-style="color:#aaa;font-width:400">
 			</view>
-			<view class="tips">用户名或密码错误</view>
+			<view class="tips" v-if="tipshow==1">用户名或密码错误</view>
+			<view class="tips" v-else-if="tipshow==2">用户名或密码不能为空</view>
 		</view>
 		<view class="submit" @tap="sunFun">登录</view>
 	</view>
 </template>
 
 <script>
+
 	export default {
 		data() {
 			return {
 				user: '',
-				password: ''
+				password: '',
+				tipshow:0
+			}
+		},
+		onLoad(e) {
+			if (e.user) {
+				this.user = e.user
+				uni.showToast({
+					title: '注册成功请登录',
+					icon: 'none',
+					duration: 2000
+				});
 			}
 		},
 		methods: {
+
+			//登录提交
+			sunFun() {
+				if (this.user && this.password) {
+					uni.request({
+						url: this.$serverUrl + "/signin/match",
+						data: {
+							data: this.user,
+							password: this.password,
+
+						},
+						method: 'POST',
+						success: (data) => {
+							let status = data.data.status
+							if (status == 200) {
+								this.tipshow=false
+								let res = data.data.back
+								try {
+									uni.setStorageSync('user', {
+										'id': res.id,
+										'name': res.name,
+										'imgurl': res.imgurl,
+										'token': res.token
+									});
+								} catch {
+									console.log('缓存错误');
+								}
+								uni.navigateTo({
+									url:'../index/index'
+								})
+							} else if (status == 400) {
+								this.tipshow=1
+								this.password=''
+							} else {
+								uni.showToast({
+									title: '服务器出错',
+									icon: 'none',
+									duration: 2000
+								});
+							}
+						}
+					})
+				} else {
+					this.tipshow=2
+				}
+
+			},
+
+			//跳转去注册
 			toRegistered() {
 				uni.navigateTo({
 					url: '/pages/registered/registered'
 				})
 			},
-			getuser(e) {
-				this.user=e.detail.value;
-			},
-			getpas(e) {
-				this.password=e.detail.value;
-			},
-			sunFun(){
-				if(this.user && this.password){
-					return console.log('提交');
-				}
-				return console.log('不能为空');
-			}
 		}
 	}
 </script>

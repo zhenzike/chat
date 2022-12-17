@@ -4,7 +4,15 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "首页",
-				"navigationStyle":"custom"  //取消默认导航栏
+				"navigationStyle":"custom"  ,//取消默认导航栏
+				"enablePullDownRefresh":true,
+				"app-plus": {
+					"pullToRefresh": {
+						"support": true,
+						"style": "circle",
+						"offset": "25%"
+					}
+				}
 			}
 		}
 	    ,{
@@ -94,6 +102,15 @@
                 "navigationBarTitleText": "群详情",
                 "enablePullDownRefresh": false,
 				"navigationStyle":"custom" 
+            }
+            
+        }
+        ,{
+            "path" : "pages/test/test",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
             }
             
         }

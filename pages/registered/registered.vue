@@ -11,29 +11,32 @@
 		</view>
 		<!-- 内容 -->
 		<view class="main">
-			<view class="title" >注册</view>
+			<view class="title">注册</view>
 			<view class="inputs">
 				<view class="input-div">
-					<input class="user" type="text" placeholder="请输入注册用户名"
-						placeholder-style="color:#aaa;font-width:400" @input="getUser">
+					<input class="user" type="text" placeholder="请输入注册用户名" placeholder-style="color:#aaa;font-width:400"
+						@blur="getUser">
 					<view class="userPlaceholder" v-if="userPlaceholder">已占用</view>
-					<view class="user-ok">&#xe6d4;</view>
+					<view class="user-ok" v-else>&#xe6d4;</view>
 				</view>
 				<view class="input-div">
-					<input class="mail" type="text" placeholder="请输入注册邮箱" placeholder-style="color:#aaa;font-width:400" @input="getMail">
+					<input class="mail" type="text" placeholder="请输入注册邮箱" placeholder-style="color:#aaa;font-width:400"
+						@blur="getMail">
 					<view class="mailPlaceholder" v-if="mailPlaceholder">已占用</view>
-					<view class="voidMail" v-if="mailOK">无效的邮箱</view>
-					<view class="mail-ok" v-else>&#xe6d4;</view>
+					<view class="mail-ok" v-else-if="mailOK">&#xe6d4;</view>
+					<view class="voidMail" v-else>无效的邮箱</view>
+
 				</view>
 				<view class="input-div">
-					<input class="pas" :type="type" placeholder="请输入注册密码" placeholder-style="color:#aaa;font-width:400" @input="getpas">
+					<input class="pas" :type="type" placeholder="请输入注册密码" placeholder-style="color:#aaa;font-width:400"
+						@input="getpas">
 					<image :src="'../../static/images/common/'+eyeImg" style="height: 40rpx;width: 40rpx;"
 						@tap="lookChange"></image>
 
 				</view>
 			</view>
 		</view>
-		<view :class="subOk?'submit':'submitNo'">注册</view>
+		<view :class="subOk?'submit':'submitNo'" @tap="signUp">注册</view>
 	</view>
 </template>
 
@@ -42,54 +45,161 @@
 	export default {
 		data() {
 			return {
-				type: 'password',			
+				type: 'password',
 				eyeImg: 'no_eye.png',
-				user:'',
-				mail:'',
-				password:'',
+				user: '',
+				mail: '',
+				password: '',
 				userOk: true, //用户名是否可用
-				userPlaceholder:false,//用户名是否被占有
-				mailOK:true,  //邮箱是否可用
-				mailPlaceholder:false, //邮箱是否被占有
-				subOk:false//注册是否激活
+				userPlaceholder: false, //用户名是否被占有
+				mailOK: true, //邮箱是否可用
+				mailPlaceholder: false, //邮箱是否被占有
+				subOk: false //注册是否激活
 			}
 		},
+		computed: {
+			// 是否可注册
+			isSub() {
+				if (this.userOk && this.mailOK && this.password.length > 0) {
+					this.subOk = true;
+				} else {
+					this.subOk = false;
+				}
+				return this.subOk
+			},
+		},
+
 		methods: {
 			lookChange() {
 				this.type = this.type == 'password' ? 'text' : 'password';
 				this.eyeImg = this.eyeImg == 'no_eye.png' ? 'eye-fill.png' : 'no_eye.png'
 			},
-			getUser(e){
-				this.user=e.detail.value;
-				this.isSub()
+			//判断用户名是否合法
+			getUser(e) {
+				this.user = e.detail.value;
+				if (this.user == '') {
+					this.userOk = false
+					this.isSub
+				}
+				if (this.user.length > 0) {
+					uni.request({
+						url: this.$serverUrl + "/signup/judge",
+						data: {
+							data: this.user,
+							type: 'name',
+
+						},
+						method: 'POST',
+						success: (data) => {
+							let status = data.data.status
+
+							if (status == 200) {
+								let num = data.data.number
+								if (num > 0) {
+									//用户名已经存在
+									this.userPlaceholder = true;
+									this.userOk = false
+								} else {
+									this.userPlaceholder = false;
+									this.userOk = true
+								}
+								this.isSub
+							} else if (status == 500) {
+								uni.showToast({
+									title: '服务器出错',
+									icon: 'none',
+									duration: 2000
+								});
+							}
+						}
+					})
+				}
 			},
-			getMail(e){
-				var reg=/^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
-				this.mail=e.detail.value;
-				if(this.mail.length>0){
-					if(reg.test(this.mail)){
-						this.mailOK=false;		
-					}else{
-						this.mailOK=true;
+			//判断邮箱是否合法
+			getMail(e) {
+				var reg = /^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/;
+				this.mail = e.detail.value;
+				if (this.mail == '') {
+					this.mailOK = false;
+					this.isSub
+				}
+				if (this.mail.length > 0) {
+					//判断邮箱格式是否正确
+					if (reg.test(this.mail)) {
+						uni.request({
+							url: this.$serverUrl + "/signup/judge",
+							data: {
+								data: this.mail,
+								type: 'email',
+							},
+							method: 'POST',
+							success: (data) => {
+								let status = data.data.status
+								if (status == 200) {
+									let num = data.data.number
+									if (num > 0) {
+										//邮箱已经存在
+										this.mailPlaceholder = true;
+									} else {
+										this.mailPlaceholder = false;
+										this.mailOK = true;
+									}
+									this.isSub
+								} else if (status == 500) {
+									uni.showToast({
+										title: '服务器出错',
+										icon: 'none',
+										duration: 2000
+									});
+								}
+							}
+						})
+					} else {
+						this.mailOK = false;
 					}
 				}
-				this.isSub()
+				this.isSub
 			},
-			getpas(e){
-				this.password=e.detail.value;
-				this.isSub()
+			//密码框是否输入
+			getpas(e) {
+				this.password = e.detail.value;
+				this.isSub
 			},
-			// 是否可注册
-			isSub(){
-				if(this.userOk && this.mailOK && this.password.length>0){
-					this.subOk=true;
-				}else{
-					this.subOk=false;
+
+			//注册提交
+			signUp() {
+				console.log(1);
+				if (this.subOk) {
+					uni.request({
+						url: this.$serverUrl + "/signup/add",
+						data: {
+							name: this.user,
+							email: this.mail,
+							password: this.password
+						},
+						method: 'POST',
+						success: (data) => {
+							let status = data.data.status
+							if (status == 200) {
+								//注册成功跳转至登录页面
+								uni.navigateTo({
+									url: '/pages/login/login?user=' + this.user,
+								})
+							} else {
+								uni.showToast({
+									title: '服务器出错',
+									icon: 'none',
+									duration: 2000
+								});
+							}
+						}
+					})
 				}
 			},
-			tologin(){
+
+			tologin() {
 				uni.navigateTo({
-					url:'/pages/login/login'
+					url: '/pages/login/login'
 				})
 			}
 		}
@@ -226,14 +336,17 @@
 		line-height: 96rpx;
 		text-align: center;
 	}
+
 	.submitNo {
 		margin: 0 auto;
 		width: 520rpx;
 		height: 96rpx;
-		background: rgba(39,40,50,0.20);;
-		box-shadow: 0rpx 50rpx 32rpx -36rpx rgba(39,40,50,0.20);;
+		background: rgba(39, 40, 50, 0.20);
+		;
+		box-shadow: 0rpx 50rpx 32rpx -36rpx rgba(39, 40, 50, 0.20);
+		;
 		border-radius: 48rpx;
-	
+
 		font-size: 32rpx;
 		color: #fafafa;
 		font-weight: 600;

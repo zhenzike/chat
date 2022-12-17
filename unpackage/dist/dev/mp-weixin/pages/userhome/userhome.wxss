@@ -128,12 +128,6 @@
   font-weight: 500;
   line-height: 68rpx;
 }
-.main .user-message .nick {
-  font-size: 28rpx;
-  color: #272832;
-  font-weight: 450;
-  line-height: 40rpx;
-}
 .main .user-message .mess {
   padding: 20rpx 120rpx;
   font-size: 28rpx;

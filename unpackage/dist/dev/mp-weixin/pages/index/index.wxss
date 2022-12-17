@@ -53,14 +53,14 @@
   width: 68rpx;
   height: 68rpx;
   border-radius: 16rpx;
-  background-color: #ffe431;
+  background-color: rgba(46, 45, 50, 0.6);
 }
 .top-bar .top-bar-center {
   position: absolute;
   left: 50%;
   top: 50%;
   margin-top: -34rpx;
-  margin-left: -17rpx;
+  margin-left: -30rpx;
 }
 .top-bar .top-bar-center image {
   width: 68rpx;
@@ -88,9 +88,29 @@
   padding-top: 96rpx;
   box-sizing: border-box;
 }
+.main .Refresh {
+  height: 150rpx;
+  text-align: center;
+  line-height: 250rpx;
+  border-bottom: 1px solid #dfdfdf;
+}
+.main .nofriend {
+  padding-top: 400rpx;
+}
+.main .nofriend .tiptext {
+  text-align: center;
+  padding-bottom: 50rpx;
+}
+.main .nofriend .searchfriend {
+  width: 200rpx;
+  border-radius: 40rpx;
+  color: white;
+  background-color: #009bdb;
+}
 .friends-list {
   height: 96rpx;
   padding: 16rpx 32rpx;
+  border-bottom: 1px solid #f1f1f1;
 }
 .friends-list:active {
   background-color: #f3f4f6;

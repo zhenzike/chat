@@ -14,7 +14,7 @@
 			</view>
 			<!-- 群名 -->
 			<view class="group-name">
-				<input class="inputName" type="text" placeholder="输入群名" @blur="isNull">
+				<input class="inputName" type="text" placeholder="输入群名" @input="isNull">
 			</view>
 
 			<!-- 选择用户 -->
@@ -25,14 +25,15 @@
 						<view class="selected" :class="item.select?'is-selected':''">
 							<image src="../../static/images/common/True.png" v-if="item.select"></image>
 						</view>
-						<image class="user-icon" :src="item.imgUrl"></image>
+						<image class="user-icon" :src="item.imgurl"></image>
 						<view class="name">{{item.name}}</view>
 					</view>
 				</scroll-view>
 			</view>
 		</view>
 		<view class="btn-div">
-			<view class="btn" :class="friendNumber!=0&&inputVal?'select-btn':''">创建({{friendNumber}})</view>
+			<view class="btn" :class="friendNumber!=0&&inputVal?'select-btn':''" @tap="buildGroup">创建({{friendNumber}})
+			</view>
 		</view>
 	</view>
 </template>
@@ -41,83 +42,11 @@
 	export default {
 		data() {
 			return {
-				tempFilePaths: '',
+				tempFilePaths: '', //本地群头像路径
+				groupImg: '/group/group.png',
+				groupName: '',
+				userArr: [], //以选中好友数组
 				user: [{
-						select: false,
-						imgUrl: '../../static/images/image/1.jpeg',
-						name: '张三'
-					},
-					{
-						select: true,
-						imgUrl: '../../static/images/image/2.jpeg',
-						name: '李四'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/3.jpeg',
-						name: '王五'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/4.jpeg',
-						name: '赵六'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/1.jpeg',
-						name: '张三'
-					},
-					{
-						select: true,
-						imgUrl: '../../static/images/image/2.jpeg',
-						name: '李四'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/3.jpeg',
-						name: '王五'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/4.jpeg',
-						name: '赵六'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/1.jpeg',
-						name: '张三'
-					},
-					{
-						select: true,
-						imgUrl: '../../static/images/image/2.jpeg',
-						name: '李四'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/3.jpeg',
-						name: '王五'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/4.jpeg',
-						name: '赵六'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/1.jpeg',
-						name: '张三'
-					},
-					{
-						select: true,
-						imgUrl: '../../static/images/image/2.jpeg',
-						name: '李四'
-					},
-					{
-						select: false,
-						imgUrl: '../../static/images/image/3.jpeg',
-						name: '王五'
-					},
-					{
 						select: false,
 						imgUrl: '../../static/images/image/4.jpeg',
 						name: '赵六'
@@ -125,10 +54,32 @@
 
 				],
 				friendNumber: 0,
-				inputVal:false  //群名是否为空
+				inputVal: false, //群名是否为空
+				userid: null,
 			}
 		},
+		onLoad() {
+			this.getLoginStorage()
+			this.getFriendList()
+		},
 		methods: {
+			getLoginStorage() {
+				try {
+					const value = uni.getStorageSync('user')
+					if (value) {
+						this.userid = value.id
+					} else {
+						uni.navigateTo({
+							url: '../login/login'
+						})
+					}
+				} catch {
+					console.log('获取缓存失败');
+				}
+			},
+
+
+
 			back() {
 				uni.navigateBack({
 					delta: 1
@@ -142,6 +93,26 @@
 					sourceType: ['album'],
 					success: (res) => {
 						this.tempFilePaths = res.tempFilePaths[0]
+						this.uploadImg()
+					}
+				});
+			},
+
+			//上传群头像
+			uploadImg() {
+				uni.uploadFile({
+					url: this.$serverUrl + '/files/upload',
+					filePath: this.tempFilePaths,
+					name: 'file',
+					fileType: 'image',
+					formData: {
+						'url': 'group'
+					},
+					success: (uploadFileRes) => {
+						let data = JSON.parse(uploadFileRes.data)
+						// let lastPath=data[0].destination.substring(data[0].destination.lastIndexOf('/')+1)
+						// console.log(lastPath+'/'+data[0].filename);
+						this.groupImg = data[0].filename
 					}
 				});
 			},
@@ -154,23 +125,101 @@
 
 			// 获取选择好友的个数
 			friendNum() {
+				this.userArr = []
 				this.friendNumber = 0
 				this.user.forEach(k => {
 					if (k.select == true) {
-						this.friendNumber++
+						this.friendNumber++;
+						this.userArr.push(k.id)
 					}
 				})
-				
+				console.log(this.userArr);
 			},
-			isNull(Val){
-				if(Val.detail.value==''){
-					console.log(this.inputVal);
-					this.inputVal=false
-				}else{					
-					this.inputVal=true
-					console.log(this.inputVal);
+
+			//判断是否输入了群名
+			isNull(Val) {
+				this.groupName = Val.detail.value;
+				if (Val.detail.value == '') {
+					this.inputVal = false
+				} else {
+					this.inputVal = true
+				}
+			},
+
+			//获取好友列表
+			getFriendList() {
+				this.user = []
+
+				uni.request({
+					url: this.$serverUrl + '/index/getfriend',
+					data: {
+						userid: this.userid,
+						state: 0
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						let status = data.status
+						let res = data.data //好友列表
+						if (status == 200) {
+							if (res.length > 0) {
+								res.map(item => {
+									item.imgurl = this.$serverUrl + '/user/' + item.imgurl
+									item.select = false
+								})
+							}
+							this.user = res
+						} else {
+							uni.showToast({
+								title: '获取好友列表失败',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+
+					}
+				})
+			},
+
+			//确认创建群聊
+			buildGroup() {
+				if (this.friendNumber == 0) {
+					return uni.showToast({
+						title: '请选择好友',
+						icon: 'none',
+						duration: 2000
+					});
+				} else if (!this.inputVal) {
+					return uni.showToast({
+						title: '请输入群名称',
+						icon: 'none',
+						duration: 2000
+					});
+				} else {
+					uni.request({
+						url: this.$serverUrl + '/group/buildgroup',
+						data: {
+							userid: this.userid,
+							groupName: this.groupName,
+							groupImgurl: this.groupImg,
+							userArr: this.userArr
+						},
+						method: 'POST',
+						success: (data) => {
+							let status = data.data.status
+							
+							if('a'){
+								//进入群聊页面
+							}else{
+								
+							}
+						}
+					})
 				}
 			}
+
+
 		}
 	}
 </script>
@@ -337,16 +386,16 @@
 		.btn {
 			width: 684rpx;
 			height: 80rpx;
-			background: #7FFFD4;
+			background: #eaeaea;
 			border-radius: 10rpx;
 			text-align: center;
 			line-height: 80rpx;
 			font-size: 32rpx;
 			color: white;
 		}
-		
-		.select-btn{
-			background: #2ba245;			
+
+		.select-btn {
+			background: #7FFFD4;
 		}
 	}
 </style>

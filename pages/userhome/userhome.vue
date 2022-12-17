@@ -4,40 +4,41 @@
 			<view class="top-bar-l">
 				<view class="iconfont" @tap="back">&#xe779;</view>
 			</view>
-			<view class="top-bar-r">
-				<image src="../../static/images/common/更多.png"></image>
+			<view class="top-bar-r" @tap="toUserDetial">
+				<image src="../../static/images/common/more1.png"></image>
 			</view>
 		</view>
 		<view class="bg">
 			<view class="white-bg" :animation="aniAddFriendBgColor"></view>
-			<image class="img-bg" src="../../static/images/image/1.jpeg" mode="aspectFill"></image>
+			<image class="img-bg" :src="user.imgurl" mode="aspectFill"></image>
 		</view>
 		<view class="main">
 			<view class="user-icon">
-				<view class="sex" :style="{background:sexcolor}" :animation="aniAddFriendDataSex" >
-					<image src="../../static/images/common/性别女.png" ></image>
+				<view class="sex" :style="{background:sexcolor}" :animation="aniAddFriendDataSex">
+					<image :src="sexicon"></image>
 				</view>
-				<image class="icon"  src="../../static/images/image/1.jpeg" mode="aspectFill" :animation="aniAddFriendDataIcon"></image>
+				<image class="icon" :src="user.imgurl" mode="aspectFill" :animation="aniAddFriendDataIcon"></image>
 			</view>
 			<view class="user-message">
 				<view class="name">{{user.name}}</view>
-				<view class="nick">昵称：{{user.nickname}}</view>
+
 				<view class="mess">{{user.message}}</view>
 			</view>
 		</view>
-		<view class="btn-div">
-			<view class="btn" @tap="aniAddFriend">加为好友</view>
+		<view class="btn-div" v-show="!isUser">
+			<view class="btn" @tap="aniAddFriend" v-if="isfriend==0">加为好友</view>
+			<view class="btn" v-else>发送消息</view>
 		</view>
 
 		<!-- 好友请求页面 -->
 		<view class="add-friend" :animation="aniAddFriendData">
 			<!-- :style="{height:addHeight+'px'}" -->
 			<view class="name">{{user.name}}</view>
-			<textarea class="add-main" :value="myname+'请求加为好友'"  maxlength="120" ></textarea>
+			<textarea class="add-main" v-model="message" maxlength="120"></textarea>
 		</view>
 		<view class="add-bt" :animation="aniAddFriendDataBtn">
 			<view class="close" @tap="aniAddFriend">取消</view>
-			<view class="send">发送</view>
+			<view class="send" @tap="addSubmit">发送</view>
 		</view>
 	</view>
 </template>
@@ -46,30 +47,57 @@
 	export default {
 		data() {
 			return {
-				sexcolor: 'rgba(255,93,91,1)',
-				myname: '郭少',
-				addHeight:'',//加好友页面高度
-				isAdd:false,// 是否继续加好友
+				sexcolor: '',
+				addHeight: '', //加好友页面高度
+				isAdd: false, // 是否继续加好友
+				userid: '', //登录用户id
+				name: '',
+				imgurl: '',
+				token: '',
+				isUser: false,
+				message: '',
+				friendid: '', //进入页面的对应用户id
+				sexicon: '', //显示性别的图像
+				isfriend: 0, //是否为好友
 				user: {
-					name: '中森明莱',
+					name: '',
 					nickname: '莱莱',
-					message: '似乎靓丽得蓬松又恣意的旧日美人，总能勾起我们对往日的念恤。她们诚实、自在、美丽，自带往事光环，让人很容易产生复古一个时空的愿望'
+					message: '',
+					sex: '',
+					imgurl: ''
 				},
 				aniAddFriendData: {},
 				aniAddFriendDataBtn: {},
-				aniAddFriendDataIcon:{},
-				aniAddFriendDataSex:{},
-				aniAddFriendBgColor:{}
+				aniAddFriendDataIcon: {},
+				aniAddFriendDataSex: {},
+				aniAddFriendBgColor: {}
 			}
 		},
+
+		onLoad(e) {
+			this.getStorages();
+			this.friendid = e.id;
+			if (e.id == this.userid) {
+				this.isUser = true
+			}
+			this.getUserMsg()
+	
+		},
+		
+		onShow(){
+			this.getUserMsg()
+			this.isFriend()
+		},
+
 		methods: {
 			back() {
 				uni.navigateBack({
 					delta: 1
 				})
 			},
+			//添加好友动画
 			aniAddFriend() {
-				this.isAdd=!this.isAdd
+				this.isAdd = !this.isAdd
 				var animation = uni.createAnimation({
 					duration: 300,
 					timingFunction: 'ease',
@@ -90,39 +118,174 @@
 					duration: 300,
 					timingFunction: 'ease',
 				})
-				if(this.isAdd){
-				animation.bottom(0).step();
-				animationBtn.bottom(0).step();
-				animationIcon.width('240rpx').height('240rpx').top('80rpx').right('150rpx').step();				
-				animationSex.opacity(0).step()
-				animationBgColor.backgroundColor('rgba(0, 170, 255, 0.6)').step()
-				}else{
+				if (this.isAdd) {
+					animation.bottom(0).step();
+					animationBtn.bottom(0).step();
+					animationIcon.width('240rpx').height('240rpx').top('80rpx').right('150rpx').step();
+					animationSex.opacity(0).step()
+					animationBgColor.backgroundColor('rgba(0, 170, 255, 0.6)').step()
+				} else {
 					animation.bottom(-this.addHeight).step();
 					animationBtn.bottom(-this.addHeight).step();
 					animationIcon.width('400rpx').height('400rpx').top(0).right(0).step();
 					animationSex.opacity(1).step()
 					animationBgColor.backgroundColor('rgba(0, 170, 255, 0)').step()
 				}
-			
+
 				this.aniAddFriendData = animation.export();
 				this.aniAddFriendDataBtn = animationBtn.export();
 				this.aniAddFriendDataIcon = animationIcon.export();
 				this.aniAddFriendDataSex = animationSex.export();
 				this.aniAddFriendBgColor = animationBgColor.export();
+				this.message = this.name + ' 请求加你为好友'
 			},
-           //获取节点高度，用于解决取消加好友下拉动画问题
+			//获取节点高度，用于解决取消加好友下拉动画问题
 			getElementStyle() {
 				const query = uni.createSelectorQuery().in(this);
 				query.select('.add-friend').boundingClientRect(data => {
-					this.addHeight=data.height;
+					this.addHeight = data.height;
 				}).exec();
+			},
+
+			//获取缓存
+			getStorages() {
+				try {
+					let Storage = uni.getStorageSync('user')
+					this.userid = Storage.id;
+					this.name = Storage.name;
+					this.imgurl = Storage.imgurl;
+					this.token = Storage.token;
+				} catch {
+					console.log('获取缓存失败');
+				}
+			},
+
+			//确认添加好友
+			addSubmit() {
+				this.aniAddFriend()
+				if (this.message.length > 0) {
+					uni.request({
+						url: this.$serverUrl + '/friend/applyfriend',
+						data: {
+							userid: this.userid,
+							friendid: this.friendid,
+							message: this.message
+						},
+						method: 'POST',
+						success: (data) => {
+							let status = data.data.status
+							if (status == 200) {
+								uni.showToast({
+									title: '好友请求发送成功',
+									icon: 'none',
+									duration: 2000
+								});
+							} else if (status == 500) {
+								uni.showToast({
+									title: '服务器出错',
+									icon: 'none',
+									duration: 2000
+								});
+							} else {
+								uni.showToast({
+									title: '其他出错',
+									icon: 'none',
+									duration: 2000
+								});
+							}
+						}
+					})
+				}
+			},
+
+			//获取用户信息
+			getUserMsg() {
+				uni.request({
+					url: this.$serverUrl + '/user/detail',
+					data: {
+						id: this.friendid
+					},
+					method: 'POST',
+					success: (data) => {
+						let res = data.data.results[0]						
+						let status = data.data.status			
+						if (status == 200) {
+							this.user.name = res.name
+							this.user.message = res.synopsis
+							this.user.sex = res.sex
+							this.user.imgurl = this.$serverUrl + '/user/' + res.imgurl
+							this.getSex()
+						
+						} else {
+							uni.showToast({
+								title: '服务器出错',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
+				})
+				
+			},
+
+
+			//判断是否为好友
+			isFriend() {
+				
+				uni.request({
+					url: this.$serverUrl + '/search/isfriend',
+					data: {
+						userid: this.userid,
+						friendid: this.friendid
+					},
+					method: 'POST',
+					success: (data) => {
+						let status = data.data.status
+						if (status == 200) {						
+							this.isfriend = 1
+						} else if (status == 400) {
+							this.isfriend = 0
+						} else {
+							uni.showToast({
+								title: '服务器出错',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
+				})
+			},
+
+			//性别判断
+			getSex() {
+				if (this.user.sex == '男') {
+					this.sexicon = '../../static/images/common/man.png'
+					this.sexcolor = 'rgba(67, 255, 249, 1.0)'
+				} else {
+					this.sexicon = '../../static/images/common/woman.png'
+					this.sexcolor = 'rgba(255,93,91,1)'
+				}
+			},
+
+
+			//前往用户详情
+			toUserDetial() {
+				if (this.isUser) {
+					uni.navigateTo({
+						url: '../userdetail/userdetail?id=' + this.friendid 
+					})
+				} else {
+					uni.navigateTo({
+						url: '../userdetail/userdetail?id=' + this.friendid 
+					})
+				}
 			}
+
 		},
-		
-		onReady(){
+		onReady() {
 			this.getElementStyle()
 		},
-		
+
 
 	}
 </script>
@@ -208,7 +371,7 @@
 			position: relative;
 			width: 400rpx;
 			height: 400rpx;
-			top:50rpx;
+			top: 50rpx;
 			margin: 0 auto;
 
 			.sex {
@@ -231,7 +394,7 @@
 
 			.icon {
 				z-index: 9;
-				top:0;
+				top: 0;
 				width: 400rpx;
 				height: 400rpx;
 				border: 6rpx solid #FFFFFF;
@@ -249,12 +412,7 @@
 				line-height: 68rpx;
 			}
 
-			.nick {
-				font-size: 28rpx;
-				color: #272832;
-				font-weight: 450;
-				line-height: 40rpx;
-			}
+
 
 			.mess {
 				padding: 20rpx 120rpx;
@@ -340,7 +498,7 @@
 
 		.send {
 			flex: auto;
-			margin:auto auto auto 40rpx;
+			margin: auto auto auto 40rpx;
 			height: 80rpx;
 			background: #7FFFD4;
 			border-radius: 10rpx;

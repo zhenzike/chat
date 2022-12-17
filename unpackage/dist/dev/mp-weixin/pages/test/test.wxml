@@ -1,0 +1,1 @@
+<view><view data-event-opts="{{[['tap',[['upload',['$event']]]]]}}" class="upload" bindtap="__e">上传文件</view><block wx:for="{{imgurl}}" wx:for-item="item" wx:for-index="index" wx:key="index"><image src="{{item}}"></image></block>11</view>

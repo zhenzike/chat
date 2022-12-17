@@ -9,7 +9,8 @@
     "pages/chatroom/chatroom",
     "pages/userhome/userhome",
     "pages/buildgroups/buildgroups",
-    "pages/grouphome/grouphome"
+    "pages/grouphome/grouphome",
+    "pages/test/test"
   ],
   "subPackages": [],
   "window": {

@@ -5,24 +5,29 @@
 				<view class="iconfont" @tap="back">&#xe779;</view>
 			</view>
 			<view class="top-bar-center">
-				用户名
+				{{chatName}}
 			</view>
-			<view class="top-bar-r">
-				<image src="../../static/images/image/1.jpeg" @tap="goGroupHome"></image>
+			<view class="top-bar-r" v-if="!groupid">
+				<image :src="chatIconImg" @tap="toUserHome"></image>
+			</view>
+			<view class="top-bar-r" v-else>
+				<image src="../../static/images/common/more1.png" @tap="toGroupHome"></image>
 			</view>
 		</view>
 		<scroll-view class="chat" scroll-y="true" scroll-with-animation="true" :scroll-into-view="scrollTo"
-			:style="{paddingBottom:pdBottom+'px'}" @scrolltoupper="loadingAni" refresher-enabled="true">
+			:style="{paddingBottom:pdBottom+'px'}" refresher-enabled="true"
+			refresher-background="rgba(243, 244, 246, 1.0)" :refresher-triggered="isLoading"
+			@refresherpulling="loadingAni">
 			<view class="chat-main">
 				<!-- 加载 -->
-				<view class="loading" v-show="isLoading">
+				<!-- <view class="loading" v-show="isLoading">
 					<image src="../../static/images/common/loading.png" :animation="animationLoading"></image>
-				</view>
+				</view> -->
 
-				<view class="chat-content" v-for="(item,index) in msgs" :key="index" :id="'msg'+item.tip">
+				<view class="chat-content" v-for="(item,index) in msgs" :key="index" :id="'msg'+item.msgId">
 					<view class="chat-time" v-if="item.time!=''">{{item.time|changeTime}}</view>
-					<view class="msg-main msg-left" v-if="item.id!='b'">
-						<image class="user-icon" :src="item.imgUrl"></image>
+					<view class="msg-main msg-left" v-if="item.userId!=userid">
+						<image class="user-icon" :src="item.userImg"></image>
 						<!-- 文字 -->
 						<view class="message" v-if="item.type==0">
 							<view class="message-text">{{item.message}}</view>
@@ -40,8 +45,8 @@
 							</view>
 						</view>
 					</view>
-					<view class="msg-main msg-right" v-if="item.id!='a'">
-						<image class="user-icon" :src="item.imgUrl"></image>
+					<view class="msg-main msg-right" v-if="item.userId==userid">
+						<image class="user-icon" :src="item.userImg"></image>
 
 						<view class="message" v-if="item.type==0">
 							<view class="message-text">{{item.message}}</view>
@@ -69,7 +74,9 @@
 	import myFunction from '../../commons/js/myFunction.js'
 	import chatBox from '../../components/chat-box/chat-box.vue'
 	const innerAudioContext = uni.createInnerAudioContext(); //这个值必须定义在外部，否则音频直接会互性干扰
-	let loadingRotate
+	let loading
+	let a = 1
+	let b = 1
 	export default {
 		data() {
 			return {
@@ -78,55 +85,201 @@
 				oldTime: new Date(),
 				scrollTo: '', //控制聊天内容滚动至底部
 				pdBottom: 50,
-				animationLoading: {}, //加载动画
+				// animationLoading: {}, //加载动画
 				isLoading: false, //是否加载数据
-				nowPage: 0 ,//页码
-				beginLoading:false,
-				id:1,
-				imgurl:'../../static/images/image/2.jpeg'
+				nowPage: 1, //页码
+				beginLoading: false,
+				friendid: null, //当前聊天好友id
+				groupid: null, //当前聊天群id
+				chatName: '',
+				chatIconImg: '',
+				userid: null, //登录用户id	
+				userimg: null //登录用户头像
 			}
 		},
-		onLoad() {
-			this.getMsg(this.nowPage);
-			this.loadingAni()
+		onLoad(e) {
+			this.getLoginStorage()
+			this.chatName = e.name
+			this.chatIconImg = e.img
+
+			if (e.id) {
+				this.friendid = e.id //当进入一对一聊天页面时		
+				this.getMsg(this.nowPage);
+			} else {
+				this.groupid = e.gid //当进入群聊天页面时
+				this.getGroupMsg(this.nowPage)
+
+			}
+			this.receiveSocket() //为socket绑定事件
+			// this.loadingAni()
 		},
 		methods: {
-			back() {
-				uni.navigateBack({
-					delta: 1
-				})
-			},
-			getMsg(page) {
-				this.nowPage++;
-				let msg = datas.message()
-				let maxPages=msg.length;
-				if(msg.length>(page + 1) * 4){
-					maxPages=(page + 1) * 4
-				}else{
-					//数据获取完毕
-					this.nowPage=-1
-				}
-				for (var i = page * 4; i < maxPages; i++) { //这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
-					msg[i].imgUrl = `../../static/images/image/${msg[i].imgUrl}`;
-					let t = myFunction.spaceTime(this.oldTime, msg[i].time);
-					if (t) {
-						this.oldTime = t; //方便将当前回复时间作为下一条回复消息时间的比对对象
+			getLoginStorage() {
+				try {
+					const value = uni.getStorageSync('user')
+					if (value) {
+						this.userid = value.id
+						this.userimg = value.imgurl
+						// this.token = value.token
+					} else {
+						uni.navigateTo({
+							url: '../login/login'
+						})
 					}
-					msg[i].time = t
+				} catch {
+					console.log('获取缓存失败');
+				}
+			},
 
-					if (msg[i].type == 1) {
-						msg[i].message = `../../static/images/image/${msg[i].message}`;
-						this.previewImg.unshift(msg[i].message) //将图片插入图片数组
+
+			//获取好友聊天列表
+			getMsg(nowpage) {
+
+				uni.request({
+					url: this.$serverUrl + '/chat/frinedchat',
+					data: {
+						userid: this.userid,
+						friendid: this.friendid,
+						nowpage: this.nowPage,
+						pagesize: 2
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						let res = data.data //聊天信息列表
+
+						let maxPage = data.maxPage //最大页数
+						let status = data.status
+						if (status == 200) { //时间从大到小
+							for (var i = 0; i < res.length; i++) { //这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
+								res[i].userImg = this.$serverUrl + '/user/' + res[i].userImg;
+								if (i != res.length - 1) {
+									this.oldTime = res[i + 1].time
+								} else {
+									this.oldTime = 0
+								}
+								let t = myFunction.spaceTime(this.oldTime, res[i].time);
+								res[i].time = t
+								if (res[i].type == 1) {
+									res[i].message = this.$serverUrl + '/' + res[i].message;
+									this.previewImg.unshift(res[i].message) //将图片插入图片数组
+								}
+								this.msgs.unshift(res[i]) //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
+							}
+
+							this.$nextTick(function() {
+								this.scrollTo = 'msg' + this.msgs[i - 1].msgId
+							})
+							clearInterval(loading);
+							this.isLoading = false;
+							if (maxPage > this.nowPage) {
+								this.nowPage++; //下一次请求第二页数据
+							} else {
+								this.nowPage = -1
+							}
+						} else {
+							uni.showToast({
+								title: '获取聊天信息失败',
+								icon: 'none',
+								duration: 2000
+							});
+						}
 					}
-					this.msgs.unshift(msg[i]) //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
-				}
-				
-				this.$nextTick(function() {
-					this.scrollTo = 'msg' + this.msgs[i - 1].tip
 				})
-				clearInterval(loadingRotate);
-				this.isLoading = false;
 			},
+
+
+
+			// getMsg(page) {
+			// 	this.nowPage++;
+			// 	let msg = datas.message()
+			// 	let maxPages=msg.length;
+			// 	if(msg.length>(page + 1) * 4){
+			// 		maxPages=(page + 1) * 4
+			// 	}else{
+			// 		//数据获取完毕
+			// 		this.nowPage=-1
+			// 	}
+			// 	for (var i = page * 4; i < maxPages; i++) { //这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
+			// 		msg[i].imgUrl = `../../static/images/image/${msg[i].imgUrl}`;
+			// 		let t = myFunction.spaceTime(this.oldTime, msg[i].time);
+			// 		if (t) {
+			// 			this.oldTime = t; //方便将当前回复时间作为下一条回复消息时间的比对对象
+			// 		}
+			// 		msg[i].time = t
+
+			// 		if (msg[i].type == 1) {
+			// 			msg[i].message = `../../static/images/image/${msg[i].message}`;
+			// 			this.previewImg.unshift(msg[i].message) //将图片插入图片数组
+			// 		}
+			// 		this.msgs.unshift(msg[i]) //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
+			// 	}
+
+			// 	this.$nextTick(function() {
+			// 		this.scrollTo = 'msg' + this.msgs[i - 1].tip
+			// 	})
+			// 	clearInterval(loadingRotate);
+			// 	this.isLoading = false;
+			// },
+
+			// 获取群聊天列表
+			getGroupMsg(nowpage) {
+				uni.request({
+					url: this.$serverUrl + '/chat/groupchat',
+					data: {
+						groupid: this.groupid,
+						nowpage: this.nowPage,
+						pagesize: 2 //每页信息条数
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						let res = data.data //聊天信息列表
+
+						let maxPage = data.maxPage //最大页数
+						let status = data.status
+						if (status == 200) { //时间从大到小
+							for (var i = 0; i < res.length; i++) { //这里本来是用的let 但是为了方便获取最后一个内容的索引，改用var，
+								res[i].userImg = this.$serverUrl + '/user/' + res[i].userImg;
+								if (i != res.length - 1) {
+									this.oldTime = res[i + 1].time
+								} else {
+									this.oldTime = 0
+								}
+								let t = myFunction.spaceTime(this.oldTime, res[i].time);
+								res[i].time = t
+								if (res[i].type == 1) {
+									res[i].message = this.$serverUrl + '/' + res[i].message;
+									this.previewImg.unshift(res[i].message) //将图片插入图片数组
+								}
+								this.msgs.unshift(res[i]) //因为之前的消息是旧消息，所以需要倒序插入，使得旧消息在数组后方
+							}
+
+
+							this.$nextTick(function() {
+								this.scrollTo = 'msg' + this.msgs[i - 1].msgId
+							})
+							clearInterval(loading);
+							this.isLoading = false;
+							if (maxPage > this.nowPage) {
+								this.nowPage++; //下一次请求第二页数据
+							} else {
+								this.nowPage = -1
+							}
+						} else {
+							uni.showToast({
+								title: '获取聊天信息失败',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
+				})
+			},
+
+
 
 
 			// 使用的uni提供的API预览图片
@@ -151,73 +304,272 @@
 				this.scrollTo = '';
 				this.$nextTick(function() {
 					let len = this.msgs.length - 1
-					this.scrollTo = 'msg' + this.msgs[len].tip
+					this.scrollTo = 'msg' + this.msgs[len].msgId
 				})
 			},
+
+			//自己发送消息至滚动栏
 			inputs(e) {
+				this.receive(e, this.userid, this.userimg, 0)
+			},
+
+			//后端接收信息
+			receive(e, id, img, isSelf) {
+				//isSelf=0时代表自己发的消息
 				let len = this.msgs.length;
 				let nowTime = new Date()
+				this.oldTime = this.msgs[len - 1].time //旧时间等于聊天列表最后一个时间
 				let t = myFunction.spaceTime(this.oldTime, nowTime);
-				if (t) {
-					this.oldTime = t; //方便将当前回复时间作为下一条回复消息时间的比对对象
-				}
-				nowTime = t
-				let my = {
-					id: 'b',
-					imgUrl: `../../static/images/image/2.jpeg`,
-					tip: len,
-					type: e.type,
-					time: nowTime,
-					message: e.message
-				};
-				this.msgs.push(my);
-				this.goBottom();
-				if (e.type == 1) {
-					this.previewImg.push(e.message)
+
+				uni.request({
+					url: this.$serverUrl + (this.friendid ? '/chat/lastmsgid' : '/chat/grouplastmsgid'),
+					data: {
+						groupid: this.groupid
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						let nowMsgId = data.lastMsgId + 1
+
+						if (data.status == 200) {
+
+							let my = {
+								userId: this.userid,
+								userImg: this.$serverUrl + '/user/' + img,
+								msgId: nowMsgId,
+								type: e.type,
+								time: t,
+								message: e.message
+							};
+
+							this.msgs.push(my);
+							this.goBottom();
+							if (e.type == 1) { //发送图片处理
+								this.previewImg.push(e.message)
+
+								let time = myFunction.fileTimeName(new Date())
+
+								const uploadTask = uni.uploadFile({
+									url: this.$serverUrl + '/files/upload',
+									filePath: e.message,
+									name: 'file',
+									formData: {
+										'url': time
+									},
+									success: (uploadFileRes) => {
+										let data = JSON.parse(uploadFileRes.data)
+										this.sendSocket({
+											message: time + '/' + data[0].filename,
+											msgId: nowMsgId,
+											userImg: img,
+											type: '1'
+										})
+
+									}
+								});
+
+							} else if (e.type == 0) { //纯文字处理
+								this.sendSocket({
+									message: e.message,
+									msgId: nowMsgId,									
+									userImg: img,
+									type: '0'
+								})
+							} else if (e.type == 2) { //发送录音处理
+								let time = myFunction.fileTimeName(new Date())
+								const uploadTask = uni.uploadFile({
+									url: this.$serverUrl + '/files/upload',
+									filePath: e.message.voice,
+									name: 'file',
+									formData: {
+										'url': time
+									},
+									success: (uploadFileRes) => {
+										let data = JSON.parse(uploadFileRes.data)
+										this.sendSocket({
+											message: time + '/' + data[0].filename,
+											msgId: nowMsgId,										
+											userImg: img,
+											type: '2'
+										})
+
+									}
+								});
+							}
+						} else {
+							uni.showToast({
+								title: '发送信息失败',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
+				})
+
+			},
+
+
+			//客户端接收并渲染后端发来的聊天信息
+			receiveSocket() {
+				//渲染与好友聊天时的信息
+
+				this.$socket.on('msg', (msg, userid) => {
+
+					if (userid == this.friendid) { //发送者id与当前好友id相同才进行渲染
+						let len = this.msgs.length;
+						let nowTime = new Date()
+						let Message = ''
+
+						this.oldTime = this.msgs[len - 1].time //旧时间等于聊天列表最后一个时间
+						let t = myFunction.spaceTime(this.oldTime, nowTime);
+						if (msg.type == '1' || msg.type == '2') {
+							Message = this.$serverUrl + '/' + msg.message
+						} else {
+							Message = msg.message
+						}
+						let my = {
+							userId: userid,
+							userImg: this.chatIconImg,
+							msgId: msg.msgId,
+							type: msg.type,
+							time: t,
+							message: Message
+						};
+						this.msgs.push(my);
+						this.goBottom();
+						if (msg.type == 1) {
+							this.previewImg.push(Message)
+						}
+					}
+				})
+
+				//渲染群聊天信息
+				this.$socket.on('groupmsg', (msg,userid, groupid) => {
+					if (groupid == this.groupid) { //发送消息的群id与当前群id相同才进行渲染
+
+						let len = this.msgs.length;
+						let nowTime = new Date()
+						let Message = ''
+
+						this.oldTime = this.msgs[len - 1].time //旧时间等于聊天列表最后一个时间
+						let t = myFunction.spaceTime(this.oldTime, nowTime);
+						if (msg.type == '1' || msg.type == '2') {
+							Message = this.$serverUrl + '/' + msg.message
+						}else{
+							Message=msg.message
+						}
+						let my = {
+							userId: userid,
+							userImg:  this.$serverUrl+'/user/'+msg.userImg,
+							msgId: msg.msgId,
+							type: msg.type,
+							time: t,
+							message: Message
+						};
+						this.msgs.push(my);
+						this.goBottom();
+						if (msg.type == 1) {
+							this.previewImg.push(Message)
+						}
+					}	
+
+				})
+			},
+
+
+
+
+			//聊天数据发送给后端
+			sendSocket(e) {
+				if (this.friendid) {
+					//一对一聊天
+					this.$socket.emit('msg', e, this.userid, this.friendid)
+				} else {
+					//群聊天		
+					
+					this.$socket.emit('groupMsg', e, this.userid, this.groupid)
 				}
 			},
+
 			getBoxHeight(e) {
 				this.pdBottom = e //这里由于传过来的是以px单位为基础的数字，只能将原本的bottom设置成px单位方便设置
 				this.goBottom()
 			},
 			//音频播放
 			playVoice(e) {
-
 				innerAudioContext.src = e;
 				innerAudioContext.play();
 			},
 
-			//顶部加载动画
+
+			// 顶部加载动画
 			loadingAni() {
-				if(this.nowPage==-1){return}
+				if (this.nowPage == -1) {
+					var that = this;
+					if (!this.isLoading) {
+						this.isLoading = true; //下拉加载，先让其变true再变false才能关闭
+						//关闭加载状态 (转动的圈)，需要一点延时才能关闭
+						setTimeout(e => {
+							that.isLoading = false;
+						}, 500)
+					}
+					return uni.showToast({
+						title: '没有更多记录了',
+						icon: 'none',
+						duration: 2000
+					});
+
+				}
 				//禁止重复加载
-				if(!this.beginLoading){//false
-					this.beginLoading=true
-				}else{
+				if (!this.beginLoading) { //false
+					this.beginLoading = true
+				} else {
 					return console.log('不允许重复加载');
 				}
 				this.isLoading = true
-				var animation = uni.createAnimation({
-					duration: 1000,
-					timingFunction: 'ease',
-				})
 				let i = 1;
-				loadingRotate = setInterval(() => {
-					animation.rotate(i * 30).step()
-					this.animationLoading = animation.export()
+				loading = setInterval(() => {
 					i++
-					if (i > 30) {
-						this.getMsg(this.nowPage)
-						this.beginLoading=false
+					if (i > 10) {
+						if (this.friendid) {
+							this.getMsg(this.nowPage)
+						} else {
+							this.getGroupMsg(this.nowPage)
+						}
+						this.beginLoading = false
 					}
-				}, 80)
-				
+				}, 100)
+
 			},
-			goGroupHome(){
+
+			//解除绑定的事件，防止重复绑定
+			offEvent() {
+				this.$socket.removeAllListeners("msg")
+				this.$socket.removeAllListeners("groupmsg")
+			},
+
+			toUserHome() {
+				this.offEvent()
 				uni.navigateTo({
-					url:'/pages/grouphome/grouphome?id='+this.id+'&img='+this.imgurl,
+					url: '/pages/userdetail/userdetail?id=' + this.friendid
 				})
-			}
+			},
+
+			toGroupHome() {
+				this.offEvent()
+				uni.navigateTo({
+					url: '/pages/grouphome/grouphome?id=' + this.groupid + '&img=' + this.chatIconImg,
+				})
+			},
+
+
+			back() {
+				this.offEvent()
+				uni.navigateBack({
+					delta: 1
+				})
+			},
 
 		},
 		filters: {

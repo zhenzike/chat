@@ -1,3 +1,4 @@
+
 export default {
 	dateTime(date) {
 		let oldTime = new Date(date);
@@ -27,19 +28,42 @@ export default {
 		}
 
 	},
+	
 	// 判断聊天时间间隔，若没有超过约定时间则返回消息回复时间
-	spaceTime(old, now) {
+	spaceTime(old, now) {	
 		let oldTime = new Date(old);
 		let nowTime = new Date(now);
 		var told = oldTime.getTime();
 		var tnow = nowTime.getTime();
-		if (told > (tnow + 1000 * 60 * 5)) {
+		if ((told+1000 * 60 * 5) < tnow ) { //如果当前时间超过旧时间5分钟返回当前时间
 			return nowTime
 		} else {
 			return ''
 		}
-	}
+	},
 
+	//用于根据最后的聊天时间降序排序
+	messageOrder(arr, target) {
+		let t = null;
+		for (let i = 0; i < arr.length; i++) {
+			for (let j = i; j > 0; j--) {
+				if (arr[j][target] > arr[j - 1][target]) {
+					t = arr[j]
+					arr[j] = arr[j - 1]
+					arr[j - 1] = t
+				}
+			}
+		}
+		return arr
+	},
+
+	fileTimeName(date) {
+		let Y = date.getFullYear();
+		let M = date.getMonth() + 1;
+		let D = date.getDate();
+
+		return addZero(Y) +''+  addZero(M)+''+   addZero(D)
+	}
 }
 
 function addZero(n) {
