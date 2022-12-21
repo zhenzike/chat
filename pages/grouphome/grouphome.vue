@@ -6,30 +6,30 @@
 			</view>
 		</view>
 		<view class="bg">
-			<image class="bg-img" :src="imgurl" mode="aspectFill"></image>
+			<image class="bg-img" :src="groupImgurl" mode="aspectFill"></image>
 		</view>
 		<view class="main">
 
 			<view class="main-centent">
 				<!-- 群简介 -->
 				<view class="synopsis">
-					<view class="name">黑色玫瑰</view>
-					<view class="time">202-11-12</view>
-					<view class="sign">无论一个朋友对你有多好，总有一天他做的某件事会让你悲哀，而到时你就应学会原谅。</view>
+					<view class="name">{{dataArr.groupName}}</view>
+					<view class="time">{{fileTimeName(buildTime)}}</view>
+					<view class="sign">{{dataArr.groupTip}}</view>
 				</view>
 
 				<!-- 群成员 -->
 				<view class="member">
 					<view class="top">
 						<view class="title">群成员</view>
-						<view class="more">成员管理</view>
+						<view class="more" @tap="moreUser">查看更多</view>
 						<image src="../../static/images/common/right.png"></image>
 					</view>
 					<view class="member-ls">
 						<view class="list" v-for="(item,index) in groupMenber.slice(0,4)" :key="index">
 							<view class="msg">
 								<image class="X" src="../../static/images/common/flase.png"></image>
-								<image class="msg-icon" :src="item.imgUrl"></image>
+								<image class="msg-icon" :src="item.imgurl"></image>
 							</view>
 							<view class="name">{{item.name}}</view>
 						</view>
@@ -48,13 +48,14 @@
 						<view class="title">群名称</view>
 						<view class="cont">{{dataArr.groupName}}</view>
 						<view class="more">
-							<image src="../../static/images/common/right.png" @tap="aniModify('群名称',dataArr.groupName)"></image>
+							<image src="../../static/images/common/right.png" @tap="aniModify('群名称',dataArr.groupName)">
+							</image>
 						</view>
 					</view>
 					<view class="row">
 						<view class="title">群头像</view>
 						<view class="cont">
-							<image :src="imgurl" @tap="sendImg"></image>
+							<image :src="groupImgurl" @tap="sendImg"></image>
 						</view>
 						<view class="more">
 							<image src="../../static/images/common/right.png"></image>
@@ -64,26 +65,21 @@
 						<view class="title">群公告</view>
 						<view class="cont">{{dataArr.groupTip}}</view>
 						<view class="more">
-							<image src="../../static/images/common/right.png" @tap="aniModify('群公告',dataArr.groupTip)"></image>
+							<image src="../../static/images/common/right.png" @tap="aniModify('群公告',dataArr.groupTip)">
+							</image>
 						</view>
 					</view>
-					<view class="row">
-						<view class="title">群内昵称</view>
-						<view class="cont">{{dataArr.myName}}</view>
-						<view class="more">
-							<image src="../../static/images/common/right.png" @tap="aniModify('群内昵称',dataArr.myName)"></image>
-						</view>
-					</view>
+
 					<view class="row">
 						<view class="title">消息免打扰</view>
 						<view class="switch">
-							<switch @change="switch1Change" style="transform:scale(0.9)" />
+							<switch @change="switch1Change" style="transform:scale(0.9)" :checked="shield==1" />
 						</view>
 					</view>
 				</view>
 
 			</view>
-			<view class="bt">退出群聊</view>
+			<view class="bt" @tap="exitGroup">退出群聊</view>
 		</view>
 		<!-- 修改弹窗 -->
 		<view class="modify" :animation="modifyAni">
@@ -96,68 +92,216 @@
 				<textarea v-model="modifyData" class="modify-content"></textarea>
 			</view>
 		</view>
+
+		<!-- 更多成员 -->
+
+		<view class="moreuser" :animation="moreUserAni">
+			<view class="moreuser-header">
+				<view class="back" @tap="moreUser">取消</view>
+				<view class="title">群聊成员</view>
+			</view>
+			<view class="userList" v-for="(item,index) in groupMenber" :key="index">
+				<view class="userItem">
+					<view class="iconBox">
+						<image class="userIcon" :src="item.imgurl"></image>
+					</view>
+					<view class="userName">{{item.name}}</view>
+				</view>
+			</view>
+		</view>
+
 	</view>
 </template>
 
 <script>
-	import datas from '../../commons/js/data.js'
+	import myfun from '../../commons/js/myFunction.js'
 	export default {
 		data() {
 			return {
-				id: 0,
-				imgurl: '',
-				groupMenber: [],
-				modifyAni: {},
-				modifyData: '想要修改的内容',
-				modifyTitle:'',
-				ismodify: false,
+				groupId: 0, //群id
+				groupImgurl: '', //群头像
+				groupMenber: [], //群成员
+				userid: 0, //登录用户id
+				buildTime: '', //建群时间
+				groupIconName: '', //上传后返回的图片名称
+				shield: 0, //是否开启勿扰
+				modifyAni: {}, //修改页弹出动画
+				moreUserAni: {}, //群成员弹出动画
+				modifyData: '想要修改的内容', //修改栏得到的内容
+				modifyTitle: '',
+				ismodify: false, //是否修改资料
+				isMoreUser: false,
 				modifyHeight: '0', //修改页面高度
-				oldData:'',
-				dataArr:{
-					groupName:'黑色玫瑰',
-					groupTip:'无论一个朋友对你有多好，总有一天他做的某件事会让你悲哀，而到时你就应学会原谅。',
-					myName:'郭少侠'
+				moreUserHeight: '0',
+				oldData: '',
+				dataArr: {
+					groupName: '',
+					groupTip: '',
 				}
 			}
 		},
 		onLoad(e) {
-			this.id = e.id
-			this.imgurl = e.img
+			this.groupId = e.groupid
+			this.getLoginStorage()
+			this.getGroupDetail()
+		},
+
+		onShow() {
 			this.getMember()
 		},
+
 		onReady() {
 			this.getElementStyle()
 		},
 		methods: {
+			getLoginStorage() {
+				try {
+					const value = uni.getStorageSync('user')
+					if (value) {
+						this.userid = value.id
+					} else {
+						uni.navigateTo({
+							url: '../login/login'
+						})
+					}
+				} catch {
+					console.log('获取缓存失败');
+				}
+			},
+
+
+
 			back() {
 				uni.navigateBack({
 					delta: 1
 				})
 			},
+
+			//获取群详情
+			getGroupDetail() {
+				uni.request({
+					url: this.$serverUrl + '/group/getgroupdetail',
+					data: {
+						userid: this.userid,
+						groupid: this.groupId
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						if (data.status == 200) {
+
+							this.dataArr.groupName = data.data.name
+							this.dataArr.groupTip = data.data.notice
+							this.shield = data.data.shield
+							this.buildTime = data.data.time
+							this.groupImgurl = this.$serverUrl + '/group/' + data.data.imgurl
+							this.groupIconName = data.data.imgurl
+						} else {
+							uni.showToast({
+								title: '获取信息失败',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
+				})
+			},
+
 			//获取群成员
 			getMember() {
-				let member = datas.frineds()
-				member.forEach((k) => {
-					k.imgUrl = `../../static/images/image/${k.imgUrl}`
+				// let member = datas.frineds()
+				// member.forEach((k) => {
+				// 	k.imgUrl = `../../static/images/image/${k.imgUrl}`
+				// })
+				// this.groupMenber = member
+
+				uni.request({
+					url: this.$serverUrl + '/group/getgroupuser',
+					data: {
+						groupid: this.groupId
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						if (data.status == 200) {
+							data.data.forEach(k => {
+								k.imgurl = this.$serverUrl + '/user/' + k.imgurl
+							})
+							this.groupMenber = data.data
+
+						} else {
+							uni.showToast({
+								title: '获取信息失败',
+								icon: 'none',
+								duration: 2000
+							});
+						}
+					}
 				})
-				this.groupMenber = member
-			
 			},
 			switch1Change() {
-				console.log('开');
+				this.shield = this.shield == 0 ? 1 : 0;
+				this.updateGroupdetail()
 			},
-			sendImg(e) {
+
+			//选择图片
+			sendImg() {
 				uni.chooseImage({
 					count: 1, //默认9
 					sizeType: ['original', 'compressed'], //可以指定是原图还是压缩图，默认二者都有
-					sourceType: [e], //从相册选择
+					sourceType: ['album'], //从相册选择
 					success: (res) => {
-						this.imgurl = res.tempFilePaths[0];
+
+						this.sendGroupImg(res.tempFilePaths[0])
 					}
 				});
 			},
+
+			//上传群头像
+			sendGroupImg(imgurl) {
+				const uploadTask = uni.uploadFile({
+					url: this.$serverUrl + '/files/upload',
+					filePath: imgurl,
+					name: 'file',
+					formData: {
+						'url': 'group'
+					},
+					success: (uploadFileRes) => {
+						let data = JSON.parse(uploadFileRes.data)
+						this.groupIconName = data[0].filename //上传后的图片名称
+						this.groupImgurl = this.$serverUrl + '/group/' + this.groupIconName
+						this.updateGroupdetail()
+					}
+				});
+			},
+
+
+			//修改群资料
+			updateGroupdetail() {
+				uni.request({
+					url: this.$serverUrl + '/group/updategroupdetail',
+					data: {
+						userId: this.userid,
+						groupId: this.groupId,
+						shield: this.shield,
+						groupName: this.dataArr.groupName,
+						groupTip: this.dataArr.groupTip,
+						groupIcon: this.groupIconName
+					},
+					method: 'POST',
+					success: ({
+						data: data
+					}) => {
+						console.log(data);
+					}
+				})
+			},
+
+
+			//修改页弹出
 			aniModify(type, data) {
-			
 				this.ismodify = !this.ismodify
 				var animation = uni.createAnimation({
 					duration: 300,
@@ -167,27 +311,70 @@
 					animation.bottom(0).step()
 					this.modifyTitle = type;
 					this.modifyData = data;
-					this.oldData=data;
+					this.oldData = data;
 				} else {
 					animation.bottom(-this.modifyHeight).step();
 				}
 
 				this.modifyAni = animation.export();
 			},
+
+			//群成员弹出
+			moreUser() {
+
+				this.isMoreUser = !this.isMoreUser
+				console.log(this.isMoreUser);
+				var animation1 = uni.createAnimation({
+					duration: 300,
+					timingFunction: 'ease',
+				})
+				if (this.isMoreUser) {
+					animation1.bottom(0).step()
+				} else {
+					animation1.bottom(-this.moreUserHeight).step();
+				}
+				this.moreUserAni = animation1.export()
+			},
+
 			getElementStyle() {
 				const query = uni.createSelectorQuery().in(this);
 				query.select('.modify').boundingClientRect(data => {
 					this.modifyHeight = data.height;
 				}).exec();
+				query.select('.moreuser').boundingClientRect(data => {
+					this.moreUserHeight = data.height;
+				}).exec();
 			},
+
 			//确认修改签名等
-			modifyDefine(data) {				
-				 let arr=Object.keys(this.dataArr)
-				 let key=arr.find(k=>this.dataArr[k]==this.oldData)
-				 this.dataArr[key]=data;
-				 console.log(this.dataArr);
+			modifyDefine(data) {
+				let arr = Object.keys(this.dataArr)
+				let key = arr.find(k => this.dataArr[k] == this.oldData)
+				this.dataArr[key] = data;
+				this.updateGroupdetail()
 				this.aniModify()
 			},
+
+			//退出群聊
+			exitGroup() {
+				uni.request({
+					url: this.$serverUrl + '/group/exitgroup',
+					data: {
+						userid: this.userid,
+						groupid: this.groupId
+					},
+					method: 'POST',
+					success: (data) => {
+						console.log(data);
+					}
+				})
+			},
+
+			//格式化时间
+			fileTimeName(time) {
+				return (new Date(time).getFullYear()) + '/' + (new Date(time).getMonth() + 1) + '/' + (new Date(time)
+					.getDate())
+			}
 		},
 	}
 </script>
@@ -530,6 +717,69 @@
 				font-size: 32rpx;
 				color: #272832;
 				font-weight: 400;
+			}
+		}
+	}
+
+	.moreuser {
+		position: fixed;
+		bottom: -100%;
+		z-index: 1000;
+		width: 100%;
+		height: 100%;
+		background-color: white;
+
+		.moreuser-header {
+			display: flex;
+			flex-direction: row;
+			padding-top: var(--status-bar-height);
+			margin-bottom: 24rpx;
+			width: 100%;
+			height: 88rpx;
+			align-items: center;
+			border-bottom: 1px solid #eae2e6;
+
+			.back {
+				padding-left: 32rpx;
+				font-size: 32rpx;
+				color: #272832;
+				font-weight: 400;
+			}
+
+			.title {
+				flex: auto;
+				font-size: 40rpx;
+				color: #272832;
+				font-weight: 600;
+				line-height: 88rpx;
+				text-align: center;
+				padding-right: 96rpx;
+			}
+		}
+
+		.userItem {
+			display: flex;
+			height: 112rpx;
+			width: 100%;
+			padding: 0 24rpx 36rpx;
+
+
+			.iconBox {
+				flex: none;
+				margin: auto 0;
+				padding-right: 36rpx;
+
+				.userIcon {
+					height: 88rpx;
+					width: 88rpx;
+					border-radius: 50%;
+				}
+			}
+
+			.userName {
+				flex: auto;
+				margin: auto 0;
+
 			}
 		}
 	}

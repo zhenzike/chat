@@ -181,7 +181,7 @@
 						if (status == 200) {
 							for (let i = 0; i < this.friends.length; i++) {
 								if (this.friends[i].id == friendid) {
-									this.friends = this.friends.splice(i, 1)
+									this.friends = this.friends.splice(i, 1)//同意后将请求信息从列表中删除
 								}
 							}
 							// this.friendRequest()

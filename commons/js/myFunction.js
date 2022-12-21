@@ -58,6 +58,7 @@ export default {
 	},
 
 	fileTimeName(date) {
+		
 		let Y = date.getFullYear();
 		let M = date.getMonth() + 1;
 		let D = date.getDate();

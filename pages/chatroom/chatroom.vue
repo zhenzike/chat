@@ -75,8 +75,7 @@
 	import chatBox from '../../components/chat-box/chat-box.vue'
 	const innerAudioContext = uni.createInnerAudioContext(); //这个值必须定义在外部，否则音频直接会互性干扰
 	let loading
-	let a = 1
-	let b = 1
+
 	export default {
 		data() {
 			return {
@@ -113,6 +112,11 @@
 			this.receiveSocket() //为socket绑定事件
 			// this.loadingAni()
 		},
+		
+		onUnload(){
+			this.offEvent()
+		},
+		
 		methods: {
 			getLoginStorage() {
 				try {
@@ -372,7 +376,7 @@
 							} else if (e.type == 0) { //纯文字处理
 								this.sendSocket({
 									message: e.message,
-									msgId: nowMsgId,									
+									msgId: nowMsgId,
 									userImg: img,
 									type: '0'
 								})
@@ -389,7 +393,7 @@
 										let data = JSON.parse(uploadFileRes.data)
 										this.sendSocket({
 											message: time + '/' + data[0].filename,
-											msgId: nowMsgId,										
+											msgId: nowMsgId,
 											userImg: img,
 											type: '2'
 										})
@@ -445,7 +449,7 @@
 				})
 
 				//渲染群聊天信息
-				this.$socket.on('groupmsg', (msg,userid, groupid) => {
+				this.$socket.on('groupmsg', (msg, userid, groupid) => {
 					if (groupid == this.groupid) { //发送消息的群id与当前群id相同才进行渲染
 
 						let len = this.msgs.length;
@@ -456,12 +460,12 @@
 						let t = myFunction.spaceTime(this.oldTime, nowTime);
 						if (msg.type == '1' || msg.type == '2') {
 							Message = this.$serverUrl + '/' + msg.message
-						}else{
-							Message=msg.message
+						} else {
+							Message = msg.message
 						}
 						let my = {
 							userId: userid,
-							userImg:  this.$serverUrl+'/user/'+msg.userImg,
+							userImg: this.$serverUrl + '/user/' + msg.userImg,
 							msgId: msg.msgId,
 							type: msg.type,
 							time: t,
@@ -472,7 +476,7 @@
 						if (msg.type == 1) {
 							this.previewImg.push(Message)
 						}
-					}	
+					}
 
 				})
 			},
@@ -487,7 +491,7 @@
 					this.$socket.emit('msg', e, this.userid, this.friendid)
 				} else {
 					//群聊天		
-					
+
 					this.$socket.emit('groupMsg', e, this.userid, this.groupid)
 				}
 			},
@@ -542,6 +546,21 @@
 				}, 100)
 
 			},
+			
+			
+			//清除未读消息数量
+			clearUnReady(){
+				uni.request({
+					url:this.$serverUrl+'/user/',
+					data:{
+
+					},
+					method:'POST',
+					success:(data)=> {
+						let status=data.data.status
+					}
+				})
+			},
 
 			//解除绑定的事件，防止重复绑定
 			offEvent() {
@@ -549,23 +568,24 @@
 				this.$socket.removeAllListeners("groupmsg")
 			},
 
+			//前往用户详情
 			toUserHome() {
-				this.offEvent()
+				
 				uni.navigateTo({
 					url: '/pages/userdetail/userdetail?id=' + this.friendid
 				})
 			},
 
+			//前往群详情
 			toGroupHome() {
-				this.offEvent()
+			
 				uni.navigateTo({
-					url: '/pages/grouphome/grouphome?id=' + this.groupid + '&img=' + this.chatIconImg,
+					url: '/pages/grouphome/grouphome?groupid=' + this.groupid ,
 				})
 			},
 
 
 			back() {
-				this.offEvent()
 				uni.navigateBack({
 					delta: 1
 				})

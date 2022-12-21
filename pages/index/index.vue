@@ -52,7 +52,7 @@
 			<view v-else class="friends">
 				<view class="friends-list" v-for="(item,index) in friend" :key="index" @tap="toChatRoom(item)">
 					<view class="friend-list-l">
-						<text class="tip" v-if="item.tip>0">{{item.tip}}</text>
+						<text class="tip" v-if="(item.tip>0)&&(item.shield==0)">{{item.tip}}</text>
 						<image :src='item.imgurl'></image>
 					</view>
 					<view class="friend-list-r">
@@ -149,6 +149,7 @@
 						let status = data.status
 						let res = data.data //好友列表
 						if (status == 200) {
+							
 							if (res.length > 0) {
 								res.map(item => {
 									item.imgurl = this.$serverUrl + '/user/' + item.imgurl
@@ -222,7 +223,7 @@
 						let status = data.status
 						let res = data.data
 						if (status == 200) {
-							if (res.length > 0) {
+							if (res.length > 0) {							
 								res.map(item => {
 									item.imgurl = this.$serverUrl + '/group/' + item.imgurl
 									this.getGroupMessage(item.groupid, item)
